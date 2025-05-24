@@ -600,57 +600,53 @@
         try {
             // Buscar informações do mangá
             const mangaResponse = await fetch(`http://localhost:3001/api/mangas/${mangaId}`);
+            if (!mangaResponse.ok) {
+                throw new Error('Erro ao buscar detalhes do mangá');
+            }
             const manga = await mangaResponse.json();
 
-            // Buscar status do mangá
-            const statusResponse = await fetch(`http://localhost:3001/api/manga/${mangaId}/status`);
-            const status = await statusResponse.json();
+            // Atualizar o conteúdo do modal
+            const modal = document.getElementById('mangaDetailsModal');
+            const modalImage = modal.querySelector('.manga-detail-image');
+            const modalTitle = modal.querySelector('.manga-info-container h3');
+            const modalAuthor = modal.querySelector('.manga-info-container .author');
+            const modalStatus = modal.querySelector('.manga-info-container .status');
+            const modalRating = modal.querySelector('.manga-info-container .rating');
+            const modalChapters = modal.querySelector('.manga-info-container .chapters');
+            const modalGenres = modal.querySelector('.manga-info-container .genres');
+            const modalSinopse = modal.querySelector('.manga-info-container .sinopse');
+            const modalStatusBadge = modal.querySelector('.manga-status-badge');
 
-            // Preencher o modal com as informações
-            document.getElementById('modalMangaImage').src = manga.imagem;
-            document.getElementById('modalMangaTitle').textContent = manga.titulo;
-            document.getElementById('modalMangaAuthor').textContent = `Autor: ${manga.autor}`;
-            document.getElementById('modalMangaStatus').textContent = `Status: ${manga.status}`;
-            document.getElementById('modalMangaRating').textContent = `Nota: ${manga.nota}`;
-            document.getElementById('modalMangaChapters').textContent = `Capítulos: ${manga.capitulos}`;
-            document.getElementById('modalMangaSinopse').textContent = manga.sinopse;
+            // Encontrar o card do mangá clicado
+            const mangaCard = document.querySelector(`.card[data-manga-id="${mangaId}"]`);
+            const cardImage = mangaCard ? mangaCard.querySelector('img') : null;
 
-            // Preencher os gêneros
-            const genresContainer = document.getElementById('modalMangaGenres');
-            genresContainer.innerHTML = '';
-            manga.generos.forEach(genero => {
-                const span = document.createElement('span');
-                span.textContent = genero;
-                genresContainer.appendChild(span);
-            });
-
-            // Atualizar o status do mangá
-            const statusBadge = document.getElementById('mangaStatusBadge');
-            statusBadge.textContent = status.status === 'disponivel' ? 'Disponível' : 'Em Uso';
-            statusBadge.className = `manga-status-badge ${status.status}`;
-
-            // Atualizar os botões de controle
-            const useBtn = document.getElementById('useMangaBtn');
-            const releaseBtn = document.getElementById('releaseMangaBtn');
-            const returnBtn = document.getElementById('returnMangaBtn');
-
-            if (status.status === 'disponivel') {
-                useBtn.style.display = 'block';
-                releaseBtn.style.display = 'none';
-                returnBtn.style.display = 'none';
-            } else if (status.usuarioAtual === parseInt(localStorage.getItem('userId'))) {
-                useBtn.style.display = 'none';
-                releaseBtn.style.display = 'none';
-                returnBtn.style.display = 'block';
+            // Atualizar os elementos do modal
+            if (cardImage) {
+                modalImage.src = cardImage.src;
             } else {
-                useBtn.style.display = 'none';
-                releaseBtn.style.display = 'none';
-                returnBtn.style.display = 'none';
+                modalImage.src = manga.imagem;
             }
+            modalImage.alt = manga.titulo;
+            modalTitle.textContent = manga.titulo;
+            modalAuthor.textContent = `Autor: ${manga.autor}`;
+            modalStatus.textContent = `Status: ${manga.status}`;
+            modalRating.innerHTML = `<span class="star">★</span> ${manga.nota}/10`;
+            modalChapters.textContent = `Capítulos: ${manga.capitulos}`;
+            modalSinopse.textContent = manga.sinopse;
+            modalStatusBadge.textContent = manga.status.toUpperCase();
 
-            // Mostrar o modal
-            const modal = new bootstrap.Modal(document.getElementById('mangaModal'));
-            modal.show();
+            // Atualizar os gêneros
+            modalGenres.innerHTML = manga.generos.map(genero => 
+                `<span class="genre-tag">${genero}</span>`
+            ).join('');
+
+            // Armazenar o ID do mangá atual no modal
+            modal.dataset.currentMangaId = mangaId;
+
+            // Mostrar o modal usando Bootstrap
+            const modalInstance = new bootstrap.Modal(modal);
+            modalInstance.show();
         } catch (error) {
             console.error('Erro ao carregar detalhes do mangá:', error);
             alert('Erro ao carregar detalhes do mangá. Tente novamente.');
@@ -762,25 +758,49 @@
         document.querySelectorAll('.card').forEach(card => {
             card.addEventListener('click', function() {
                 const mangaId = this.dataset.mangaId;
-                loadMangaDetails(mangaId);
+                if (mangaId) {
+                    loadMangaDetails(mangaId);
+                }
             });
         });
 
-        // Event listeners para os botões de controle
-        document.getElementById('useMangaBtn').addEventListener('click', function() {
-            const mangaId = document.querySelector('.card').dataset.mangaId;
-            useManga(mangaId);
-        });
+        // Event listeners para os botões de controle do modal
+        const modal = document.getElementById('mangaDetailsModal');
+        if (modal) {
+            const readButton = modal.querySelector('.btn-primary');
+            const addToListButton = modal.querySelector('.btn-success');
+            const favoriteButton = modal.querySelector('.btn-warning');
 
-        document.getElementById('releaseMangaBtn').addEventListener('click', function() {
-            const mangaId = document.querySelector('.card').dataset.mangaId;
-            releaseManga(mangaId);
-        });
+            if (readButton) {
+                readButton.addEventListener('click', function() {
+                    const mangaId = modal.dataset.currentMangaId;
+                    if (mangaId) {
+                        // Implementar lógica para ler o mangá
+                        console.log('Ler mangá:', mangaId);
+                    }
+                });
+            }
 
-        document.getElementById('returnMangaBtn').addEventListener('click', function() {
-            const mangaId = document.querySelector('.card').dataset.mangaId;
-            returnManga(mangaId);
-        });
+            if (addToListButton) {
+                addToListButton.addEventListener('click', function() {
+                    const mangaId = modal.dataset.currentMangaId;
+                    if (mangaId) {
+                        // Implementar lógica para adicionar à lista
+                        console.log('Adicionar à lista:', mangaId);
+                    }
+                });
+            }
+
+            if (favoriteButton) {
+                favoriteButton.addEventListener('click', function() {
+                    const mangaId = modal.dataset.currentMangaId;
+                    if (mangaId) {
+                        // Implementar lógica para favoritar
+                        console.log('Favoritar:', mangaId);
+                    }
+                });
+            }
+        }
     });
 
     // Função para atualizar o estado do avatar e nome do usuário

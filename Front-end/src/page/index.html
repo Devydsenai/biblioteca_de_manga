@@ -141,32 +141,41 @@
     </div>
 
     <!-- Modal de Detalhes do Mangá -->
-    <div class="modal fade" id="mangaModal" tabindex="-1" aria-labelledby="mangaModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal fade" id="mangaDetailsModal" tabindex="-1" aria-labelledby="mangaDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="mangaModalLabel">Detalhes do Mangá</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar" tabindex="0"></button>
+                    <h5 class="modal-title" id="mangaDetailsModalLabel">Detalhes do Mangá</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <div class="manga-details">
                         <div class="manga-image-container">
-                            <img src="" alt="" id="modalMangaImage" class="manga-detail-image">
-                            <div class="manga-status-badge" id="mangaStatusBadge" role="status" aria-live="polite"></div>
+                            <img src="../img/OnePiece.png" alt="One Piece" class="manga-detail-image">
+                            <span class="manga-status-badge">EM ANDAMENTO</span>
                         </div>
                         <div class="manga-info-container">
-                            <h3 id="modalMangaTitle"></h3>
-                            <p class="author" id="modalMangaAuthor"></p>
-                            <p class="status" id="modalMangaStatus"></p>
-                            <p class="rating" id="modalMangaRating"></p>
-                            <p class="chapters" id="modalMangaChapters"></p>
-                            <div class="genres" id="modalMangaGenres" role="list" aria-label="Gêneros"></div>
-                            <p class="sinopse" id="modalMangaSinopse"></p>
-                            
+                            <h3>One Piece</h3>
+                            <p class="author">Autor: Eiichiro Oda</p>
+                            <p class="status">Status: Em andamento</p>
+                            <p class="rating">
+                                <span class="star">★</span>
+                                4.9/5.0
+                            </p>
+                            <p class="chapters">Capítulos: 1000+</p>
+                            <div class="genres">
+                                <span class="genre-tag">Ação</span>
+                                <span class="genre-tag">Aventura</span>
+                                <span class="genre-tag">Fantasia</span>
+                                <span class="genre-tag">Comédia</span>
+                            </div>
+                            <p class="sinopse">
+                                One Piece é uma série de mangá escrita e ilustrada por Eiichiro Oda. Os capítulos têm sido serializados na revista Weekly Shōnen Jump desde 22 de julho de 1997, com os capítulos compilados em 100 volumes tankōbon até 4 de setembro de 2021. A história segue as aventuras de Monkey D. Luffy, um jovem cujo corpo ganhou as propriedades de borracha após ter comido uma fruta do diabo acidentalmente. Com sua tripulação, os Piratas do Chapéu de Palha, Luffy explora a Grand Line em busca do tesouro mais procurado do mundo, o "One Piece", a fim de se tornar o próximo Rei dos Piratas.
+                            </p>
                             <div class="manga-controls">
-                                <button id="useMangaBtn" class="btn btn-primary" aria-label="Usar Mangá">Usar Mangá</button>
-                                <button id="releaseMangaBtn" class="btn btn-success" style="display: none;" aria-label="Marcar como Disponível">Marcar como Disponível</button>
-                                <button id="returnMangaBtn" class="btn btn-warning" style="display: none;" aria-label="Devolver Mangá">Devolver Mangá</button>
+                                <button class="btn btn-primary">Ler Agora</button>
+                                <button class="btn btn-success">Adicionar à Lista</button>
+                                <button class="btn btn-warning">Favoritar</button>
                             </div>
                         </div>
                     </div>
@@ -199,73 +208,48 @@
         <!-- Grid de cards de mangás -->
         <div class="cards">
           <!-- Card de mangá individual -->
-<<<<<<< HEAD
           <div class="card" data-manga-id="1">
-            <img src="../img/mangas/one-piece.jpg" alt="One Piece">
-=======
-          <div class="card">
-            <img src="../img/OnePiece.png" alt="Manga 1">
->>>>>>> 790a7448c8f0fde26f4a0015f4ce2b14cfaae37f
+            <img src="../img/OnePiece.png" alt="One Piece">
             <div class="card-info">
               <h3>One Piece</h3>
               <p><span class="star">★</span> 9.8</p>
             </div>
             <span class="badge andamento">EM ANDAMENTO</span>
           </div>
-          <div class="card">
-<<<<<<< HEAD
-            <img src="../img/mangas/naruto.jpg" alt="Naruto">
-=======
-            <img src="../img/Naruto.png" alt="Manga 2">
->>>>>>> 790a7448c8f0fde26f4a0015f4ce2b14cfaae37f
+          <div class="card" data-manga-id="2">
+            <img src="../img/Naruto.png" alt="Naruto">
             <div class="card-info">
               <h3>Naruto</h3>
               <p><span class="star">★</span> 9.5</p>
             </div>
             <span class="badge andamento">EM ANDAMENTO</span>
           </div>
-          <div class="card">
-<<<<<<< HEAD
-            <img src="../img/mangas/dragon-ball.jpg" alt="Dragon Ball">
-=======
-            <img src="../img/DragonBall.png" alt="Manga 3">
->>>>>>> 790a7448c8f0fde26f4a0015f4ce2b14cfaae37f
+          <div class="card" data-manga-id="3">
+            <img src="../img/DragonBall.png" alt="Dragon Ball">
             <div class="card-info">
               <h3>Dragon Ball</h3>
               <p><span class="star">★</span> 9.3</p>
             </div>
             <span class="badge andamento">EM ANDAMENTO</span>
           </div>
-          <div class="card">
-<<<<<<< HEAD
-            <img src="../img/mangas/bleach.jpg" alt="Bleach">
-=======
-            <img src="../img/Bleach.png" alt="Manga 4">
->>>>>>> 790a7448c8f0fde26f4a0015f4ce2b14cfaae37f
+          <div class="card" data-manga-id="4">
+            <img src="../img/Bleach.png" alt="Bleach">
             <div class="card-info">
               <h3>Bleach</h3>
               <p><span class="star">★</span> 9.2</p>
             </div>
             <span class="badge lancamento">EM LANÇAMENTO</span>
           </div>
-          <div class="card">
-<<<<<<< HEAD
-            <img src="../img/mangas/death-note.jpg" alt="Death Note">
-=======
-            <img src="../img/DeathNote.png" alt="Manga 5">
->>>>>>> 790a7448c8f0fde26f4a0015f4ce2b14cfaae37f
+          <div class="card" data-manga-id="5">
+            <img src="../img/DeathNote.png" alt="Death Note">
             <div class="card-info">
               <h3>Death Note</h3>
               <p><span class="star">★</span> 9.7</p>
             </div>
             <span class="badge andamento">EM ANDAMENTO</span>
           </div>
-          <div class="card">
-<<<<<<< HEAD
-            <img src="../img/mangas/attack-on-titan.jpg" alt="Attack on Titan">
-=======
-            <img src="../img/AttackOnTItan.png" alt="Manga 6">
->>>>>>> 790a7448c8f0fde26f4a0015f4ce2b14cfaae37f
+          <div class="card" data-manga-id="6">
+            <img src="../img/AttackOnTItan.png" alt="Attack on Titan">
             <div class="card-info">
               <h3>Attack on Titan</h3>
               <p><span class="star">★</span> 9.6</p>
@@ -286,11 +270,7 @@
             <div class="top10-track">
               <!-- Card 1 -->
               <div class="top10-card">
-<<<<<<< HEAD
-                <img src="../img/mangas/one-piece.jpg" alt="One Piece">
-=======
                 <img src="../img/OnePiece.png" alt="One Piece">
->>>>>>> 790a7448c8f0fde26f4a0015f4ce2b14cfaae37f
                 <div class="top10-number">1</div>
                 <div class="top10-info">
                   <h3>One Piece</h3>
@@ -302,11 +282,7 @@
               </div>
               <!-- Card 2 -->
               <div class="top10-card">
-<<<<<<< HEAD
-                <img src="../img/mangas/naruto.jpg" alt="Naruto">
-=======
                 <img src="../img/Naruto.png" alt="Naruto">
->>>>>>> 790a7448c8f0fde26f4a0015f4ce2b14cfaae37f
                 <div class="top10-number">2</div>
                 <div class="top10-info">
                   <h3>Naruto</h3>
@@ -318,11 +294,7 @@
               </div>
               <!-- Card 3 -->
               <div class="top10-card">
-<<<<<<< HEAD
-                <img src="../img/mangas/dragon-ball.jpg" alt="Dragon Ball">
-=======
                 <img src="../img/DragonBall.png" alt="Dragon Ball">
->>>>>>> 790a7448c8f0fde26f4a0015f4ce2b14cfaae37f
                 <div class="top10-number">3</div>
                 <div class="top10-info">
                   <h3>Dragon Ball</h3>
@@ -334,11 +306,7 @@
               </div>
               <!-- Card 4 -->
               <div class="top10-card">
-<<<<<<< HEAD
-                <img src="../img/mangas/bleach.jpg" alt="Bleach">
-=======
                 <img src="../img/Bleach.png" alt="Bleach">
->>>>>>> 790a7448c8f0fde26f4a0015f4ce2b14cfaae37f
                 <div class="top10-number">4</div>
                 <div class="top10-info">
                   <h3>Bleach</h3>
@@ -350,11 +318,7 @@
               </div>
               <!-- Card 5 -->
               <div class="top10-card">
-<<<<<<< HEAD
-                <img src="../img/mangas/death-note.jpg" alt="Death Note">
-=======
                 <img src="../img/DeathNote.png" alt="Death Note">
->>>>>>> 790a7448c8f0fde26f4a0015f4ce2b14cfaae37f
                 <div class="top10-number">5</div>
                 <div class="top10-info">
                   <h3>Death Note</h3>
@@ -366,11 +330,7 @@
               </div>
               <!-- Card 6 -->
               <div class="top10-card">
-<<<<<<< HEAD
-                <img src="../img/mangas/attack-on-titan.jpg" alt="Attack on Titan">
-=======
                 <img src="../img/AttackOnTItan.png" alt="Attack on Titan">
->>>>>>> 790a7448c8f0fde26f4a0015f4ce2b14cfaae37f
                 <div class="top10-number">6</div>
                 <div class="top10-info">
                   <h3>Attack on Titan</h3>
@@ -382,11 +342,7 @@
               </div>
               <!-- Card 7 -->
               <div class="top10-card">
-<<<<<<< HEAD
-                <img src="../img/mangas/jujutsu-kaisen.jpg" alt="Jujutsu Kaisen">
-=======
                 <img src="../img/JujutsuKaisen.png" alt="Jujutsu Kaisen">
->>>>>>> 790a7448c8f0fde26f4a0015f4ce2b14cfaae37f
                 <div class="top10-number">7</div>
                 <div class="top10-info">
                   <h3>Jujutsu Kaisen</h3>
@@ -398,11 +354,7 @@
               </div>
               <!-- Card 8 -->
               <div class="top10-card">
-<<<<<<< HEAD
-                <img src="../img/mangas/demon-slayer.jpg" alt="Demon Slayer">
-=======
                 <img src="../img/DemonSlayer.png" alt="Demon Slayer">
->>>>>>> 790a7448c8f0fde26f4a0015f4ce2b14cfaae37f
                 <div class="top10-number">8</div>
                 <div class="top10-info">
                   <h3>Demon Slayer</h3>
@@ -414,11 +366,7 @@
               </div>
               <!-- Card 9 -->
               <div class="top10-card">
-<<<<<<< HEAD
-                <img src="../img/mangas/my-hero-academia.jpg" alt="My Hero Academia">
-=======
                 <img src="../img/MyHeroAcademia.png" alt="My Hero Academia">
->>>>>>> 790a7448c8f0fde26f4a0015f4ce2b14cfaae37f
                 <div class="top10-number">9</div>
                 <div class="top10-info">
                   <h3>My Hero Academia</h3>
@@ -430,11 +378,7 @@
               </div>
               <!-- Card 10 -->
               <div class="top10-card">
-<<<<<<< HEAD
-                <img src="../img/mangas/chainsaw-man.jpg" alt="Chainsaw Man">
-=======
                 <img src="../img/ChainsawMan.png" alt="Chainsaw Man">
->>>>>>> 790a7448c8f0fde26f4a0015f4ce2b14cfaae37f
                 <div class="top10-number">10</div>
                 <div class="top10-info">
                   <h3>Chainsaw Man</h3>
@@ -462,79 +406,54 @@
           <a href="#" class="view-all">Ver todos</a>
         </div>
         <div class="cards">
-          <div class="card">
-<<<<<<< HEAD
-            <img src="../img/mangas/bleach.jpg" alt="Bleach">
-=======
-            <img src="../img/Bleach.png" alt="Manga 4">
->>>>>>> 790a7448c8f0fde26f4a0015f4ce2b14cfaae37f
-            <div class="card-info">
-              <h3>Bleach</h3>
-              <p><span class="star">★</span> 9.2</p>
-            </div>
-            <span class="badge lancamento">EM LANÇAMENTO</span>
-          </div>
-          <div class="card">
-<<<<<<< HEAD
-            <img src="../img/mangas/death-note.jpg" alt="Death Note">
-=======
-            <img src="../img/DeathNote.png" alt="Manga 5">
->>>>>>> 790a7448c8f0fde26f4a0015f4ce2b14cfaae37f
-            <div class="card-info">
-              <h3>Death Note</h3>
-              <p><span class="star">★</span> 9.7</p>
-            </div>
-            <span class="badge andamento">EM ANDAMENTO</span>
-          </div>
-          <div class="card">
-<<<<<<< HEAD
-            <img src="../img/mangas/attack-on-titan.jpg" alt="Attack on Titan">
-=======
-            <img src="../img/AttackOnTItan.png" alt="Manga 6">
->>>>>>> 790a7448c8f0fde26f4a0015f4ce2b14cfaae37f
-            <div class="card-info">
-              <h3>Attack on Titan</h3>
-              <p><span class="star">★</span> 9.6</p>
-            </div>
-            <span class="badge andamento">EM ANDAMENTO</span>
-          </div>
-          <div class="card">
-<<<<<<< HEAD
-            <img src="../img/mangas/jujutsu-kaisen.jpg" alt="Jujutsu Kaisen">
-=======
-            <img src="../img/JujutsuKaisen.png" alt="Manga 7">
->>>>>>> 790a7448c8f0fde26f4a0015f4ce2b14cfaae37f
+          <div class="card" data-manga-id="7">
+            <img src="../img/JujutsuKaisen.png" alt="Jujutsu Kaisen">
             <div class="card-info">
               <h3>Jujutsu Kaisen</h3>
               <p><span class="star">★</span> 9.4</p>
             </div>
             <span class="badge lancamento">EM LANÇAMENTO</span>
           </div>
-          <div class="card">
-<<<<<<< HEAD
-            <img src="../img/mangas/demon-slayer.jpg" alt="Demon Slayer">
-=======
-            <img src="../img/DemonSlayer.png" alt="Manga 8">
->>>>>>> 790a7448c8f0fde26f4a0015f4ce2b14cfaae37f
+          <div class="card" data-manga-id="8">
+            <img src="../img/DemonSlayer.png" alt="Demon Slayer">
             <div class="card-info">
               <h3>Demon Slayer</h3>
               <p><span class="star">★</span> 9.5</p>
             </div>
             <span class="badge andamento">EM ANDAMENTO</span>
           </div>
-          <div class="card">
-<<<<<<< HEAD
-            <img src="../img/mangas/my-hero-academia.jpg" alt="My Hero Academia">
-=======
-            <img src="../img/MyHeroAcademia.png" alt="Manga 9">
->>>>>>> 790a7448c8f0fde26f4a0015f4ce2b14cfaae37f
+          <div class="card" data-manga-id="9">
+            <img src="../img/MyHeroAcademia.png" alt="My Hero Academia">
             <div class="card-info">
               <h3>My Hero Academia</h3>
               <p><span class="star">★</span> 9.3</p>
             </div>
             <span class="badge andamento">EM ANDAMENTO</span>
           </div>
-          
+          <div class="card" data-manga-id="10">
+            <img src="../img/ChainsawMan.png" alt="Chainsaw Man">
+            <div class="card-info">
+              <h3>Chainsaw Man</h3>
+              <p><span class="star">★</span> 9.7</p>
+            </div>
+            <span class="badge lancamento">EM LANÇAMENTO</span>
+          </div>
+          <div class="card" data-manga-id="11">
+            <img src="../img/OnePunchMan.png" alt="One Punch Man">
+            <div class="card-info">
+              <h3>One Punch Man</h3>
+              <p><span class="star">★</span> 9.6</p>
+            </div>
+            <span class="badge andamento">EM ANDAMENTO</span>
+          </div>
+          <div class="card" data-manga-id="12">
+            <img src="../img/JujutsuKaisen.png" alt="Jujutsu Kaisen">
+            <div class="card-info">
+              <h3>Jujutsu Kaisen</h3>
+              <p><span class="star">★</span> 9.4</p>
+            </div>
+            <span class="badge lancamento">EM LANÇAMENTO</span>
+          </div>
         </div>
       </section>
 
@@ -548,12 +467,8 @@
           <div class="carousel-container">
             <div class="carousel-track">
               <!-- Card 1 -->
-              <div class="card update-card">
-<<<<<<< HEAD
-                <img src="../img/mangas/jujutsu-kaisen.jpg" alt="Jujutsu Kaisen">
-=======
-                <img src="../img/JujutsuKaisen.png" alt="Manga 7">
->>>>>>> 790a7448c8f0fde26f4a0015f4ce2b14cfaae37f
+              <div class="card update-card" data-manga-id="13">
+                <img src="../img/JujutsuKaisen.png" alt="Jujutsu Kaisen">
                 <div class="card-info">
                   <h3>Jujutsu Kaisen</h3>
                   <p><span class="star">★</span> 9.4</p>
@@ -565,12 +480,8 @@
                 <span class="badge lancamento">EM LANÇAMENTO</span>
               </div>
               <!-- Card 2 -->
-              <div class="card update-card">
-<<<<<<< HEAD
-                <img src="../img/mangas/demon-slayer.jpg" alt="Demon Slayer">
-=======
-                <img src="../img/DemonSlayer.png" alt="Manga 8">
->>>>>>> 790a7448c8f0fde26f4a0015f4ce2b14cfaae37f
+              <div class="card update-card" data-manga-id="14">
+                <img src="../img/DemonSlayer.png" alt="Demon Slayer">
                 <div class="card-info">
                   <h3>Demon Slayer</h3>
                   <p><span class="star">★</span> 9.5</p>
@@ -582,12 +493,8 @@
                 <span class="badge andamento">EM ANDAMENTO</span>
               </div>
               <!-- Card 3 -->
-              <div class="card update-card">
-<<<<<<< HEAD
-                <img src="../img/mangas/my-hero-academia.jpg" alt="My Hero Academia">
-=======
-                <img src="../img/MyHeroAcademia.png" alt="Manga 9">
->>>>>>> 790a7448c8f0fde26f4a0015f4ce2b14cfaae37f
+              <div class="card update-card" data-manga-id="15">
+                <img src="../img/MyHeroAcademia.png" alt="My Hero Academia">
                 <div class="card-info">
                   <h3>My Hero Academia</h3>
                   <p><span class="star">★</span> 9.3</p>
@@ -599,12 +506,8 @@
                 <span class="badge andamento">EM ANDAMENTO</span>
               </div>
               <!-- Card 4 -->
-              <div class="card update-card">
-<<<<<<< HEAD
-                <img src="../img/mangas/chainsaw-man.jpg" alt="Chainsaw Man">
-=======
-                <img src= "../img/ChainsawMan.png" alt="Manga 10">
->>>>>>> 790a7448c8f0fde26f4a0015f4ce2b14cfaae37f
+              <div class="card update-card" data-manga-id="16">
+                <img src="../img/ChainsawMan.png" alt="Chainsaw Man">
                 <div class="card-info">
                   <h3>Chainsaw Man</h3>
                   <p><span class="star">★</span> 9.7</p>
@@ -616,12 +519,8 @@
                 <span class="badge lancamento">EM LANÇAMENTO</span>
               </div>
               <!-- Card 5 -->
-              <div class="card update-card">
-<<<<<<< HEAD
-                <img src="../img/mangas/one-piece.jpg" alt="One Piece">
-=======
-                <img src="../img/OnePunchMan.png" alt="Manga 11">
->>>>>>> 790a7448c8f0fde26f4a0015f4ce2b14cfaae37f
+              <div class="card update-card" data-manga-id="17">
+                <img src="../img/OnePunchMan.png" alt="One Punch Man">
                 <div class="card-info">
                   <h3>One Punch Man</h3>
                   <p><span class="star">★</span> 9.6</p>
@@ -633,8 +532,8 @@
                 <span class="badge andamento">EM ANDAMENTO</span>
               </div>
               <!-- Card 6 -->
-              <div class="card update-card">
-                <img src="../img/mangas/jujutsu-kaisen.jpg" alt="Jujutsu Kaisen">
+              <div class="card update-card" data-manga-id="18">
+                <img src="../img/JujutsuKaisen.png" alt="Jujutsu Kaisen">
                 <div class="card-info">
                   <h3>Jujutsu Kaisen</h3>
                   <p><span class="star">★</span> 9.4</p>
@@ -645,9 +544,7 @@
                 </div>
                 <span class="badge lancamento">EM LANÇAMENTO</span>
               </div>
-
             </div>
-            <!--  -->
           </div>
           <button class="carousel-control prev" aria-label="Anterior">
             <i class="fas fa-chevron-left"></i>

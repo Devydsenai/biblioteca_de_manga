@@ -345,8 +345,9 @@ body {
 /* Grid de cards */
 .cards {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 24px;
+    padding: 20px 0;
 }
 
 /* Cards individuais */
@@ -354,26 +355,35 @@ body {
     background: #181828;
     border-radius: 16px;
     overflow: hidden;
-    transition: transform 0.2s;
+    transition: all 0.3s ease;
     position: relative;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .card:hover {
-    transform: translateY(-4px);
+    transform: translateY(-8px);
+    box-shadow: 0 8px 24px rgba(24, 249, 196, 0.2);
 }
 
 .card img {
     width: 100%;
-    height: 300px;
+    height: 280px;
     object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.card:hover img {
+    transform: scale(1.05);
 }
 
 .card-info {
     padding: 16px;
+    background: linear-gradient(to top, rgba(24, 24, 40, 0.95), rgba(24, 24, 40, 0.8));
 }
 
 .card-info h3 {
-    font-size: 1rem;
+    font-size: 1.1rem;
     margin: 0 0 8px 0;
     color: #fff;
     white-space: nowrap;
@@ -405,6 +415,7 @@ body {
     font-size: 0.8rem;
     font-weight: bold;
     color: #181828;
+    z-index: 2;
 }
 
 .andamento {
@@ -413,6 +424,43 @@ body {
 
 .lancamento {
     background: #18f9c4;
+}
+
+/* Responsividade dos cards */
+@media (max-width: 1200px) {
+    .cards {
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .cards {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 16px;
+    }
+    
+    .card img {
+        height: 220px;
+    }
+}
+
+@media (max-width: 576px) {
+    .cards {
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 12px;
+    }
+    
+    .card img {
+        height: 180px;
+    }
+    
+    .card-info {
+        padding: 12px;
+    }
+    
+    .card-info h3 {
+        font-size: 0.9rem;
+    }
 }
 
 /* ==========================================================================
@@ -1418,84 +1466,96 @@ footer {
     display: flex;
     gap: 2rem;
     padding: 1rem;
+    background: #181828;
+    border-radius: 16px;
 }
 
 .manga-image-container {
     position: relative;
     flex-shrink: 0;
+    width: 300px;
 }
 
 .manga-detail-image {
-    width: 250px;
-    height: 350px;
+    width: 100%;
+    height: 450px;
     object-fit: cover;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    border: 2px solid #18f9c4;
 }
 
 .manga-status-badge {
     position: absolute;
-    top: 10px;
-    right: 10px;
-    padding: 5px 10px;
-    border-radius: 4px;
-    font-size: 0.8rem;
+    top: 16px;
+    right: 16px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.9rem;
     font-weight: bold;
-    color: white;
-}
-
-.manga-status-badge.disponivel {
-    background-color: #28a745;
-}
-
-.manga-status-badge.em-uso {
-    background-color: #dc3545;
+    color: #181828;
+    background: #18f9c4;
+    box-shadow: 0 4px 12px rgba(24, 249, 196, 0.3);
 }
 
 .manga-info-container {
     flex-grow: 1;
+    padding: 1rem;
 }
 
 .manga-info-container h3 {
-    font-size: 1.8rem;
-    margin-bottom: 0.5rem;
-    color: #333;
-}
-
-.manga-info-container .author {
-    font-size: 1.1rem;
-    color: #666;
+    font-size: 2rem;
     margin-bottom: 1rem;
+    color: #fff;
+    text-shadow: 0 0 20px rgba(24, 249, 196, 0.3);
 }
 
+.manga-info-container .author,
 .manga-info-container .status,
 .manga-info-container .rating,
 .manga-info-container .chapters {
-    font-size: 1rem;
-    color: #555;
-    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+    color: #bdbdd7;
+    margin-bottom: 0.8rem;
+}
+
+.manga-info-container .star {
+    color: #18f9c4;
+    font-size: 1.2rem;
+    margin-right: 4px;
 }
 
 .manga-info-container .genres {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
-    margin: 1rem 0;
+    gap: 0.8rem;
+    margin: 1.5rem 0;
 }
 
-.manga-info-container .genres span {
-    background-color: #f0f0f0;
-    padding: 4px 8px;
-    border-radius: 4px;
+.manga-info-container .genre-tag {
+    background: rgba(24, 249, 196, 0.1);
+    color: #18f9c4;
+    padding: 6px 12px;
+    border-radius: 20px;
     font-size: 0.9rem;
-    color: #666;
+    border: 1px solid rgba(24, 249, 196, 0.3);
+    transition: all 0.3s ease;
+}
+
+.manga-info-container .genre-tag:hover {
+    background: rgba(24, 249, 196, 0.2);
+    transform: translateY(-2px);
 }
 
 .manga-info-container .sinopse {
     font-size: 1rem;
     line-height: 1.6;
-    color: #444;
-    margin-top: 1rem;
+    color: #bdbdd7;
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: rgba(24, 24, 40, 0.5);
+    border-radius: 12px;
+    border-left: 4px solid #18f9c4;
 }
 
 .manga-controls {
@@ -1505,28 +1565,49 @@ footer {
 }
 
 .manga-controls button {
-    padding: 0.5rem 1.5rem;
+    padding: 12px 24px;
     font-size: 1rem;
-    border-radius: 4px;
+    border-radius: 8px;
     cursor: pointer;
     transition: all 0.3s ease;
+    border: none;
+    font-weight: 500;
+}
+
+.manga-controls .btn-primary {
+    background: linear-gradient(90deg, #18f9c4, #18d2f9);
+    color: #10101a;
+}
+
+.manga-controls .btn-success {
+    background: linear-gradient(90deg, #28a745, #20c997);
+    color: #fff;
+}
+
+.manga-controls .btn-warning {
+    background: linear-gradient(90deg, #ffc107, #ff9800);
+    color: #10101a;
 }
 
 .manga-controls button:hover {
     transform: translateY(-2px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(24, 249, 196, 0.3);
 }
 
 /* Responsividade do Modal */
-@media (max-width: 768px) {
+@media (max-width: 992px) {
     .manga-details {
         flex-direction: column;
         align-items: center;
     }
 
+    .manga-image-container {
+        width: 100%;
+        max-width: 300px;
+    }
+
     .manga-detail-image {
-        width: 200px;
-        height: 280px;
+        height: 400px;
     }
 
     .manga-info-container {
@@ -1539,5 +1620,23 @@ footer {
 
     .manga-controls {
         justify-content: center;
+    }
+}
+
+@media (max-width: 576px) {
+    .manga-detail-image {
+        height: 350px;
+    }
+
+    .manga-info-container h3 {
+        font-size: 1.8rem;
+    }
+
+    .manga-controls {
+        flex-direction: column;
+    }
+
+    .manga-controls button {
+        width: 100%;
     }
 }

@@ -41,6 +41,7 @@ const upload = multer({
 app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/img', express.static(path.join(__dirname, '..', 'Front-end', 'src', 'img')));
 
 // Chave secreta para JWT
 const JWT_SECRET = 'sua_chave_secreta_muito_segura';
