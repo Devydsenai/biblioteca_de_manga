@@ -60,7 +60,7 @@
 
           <!-- Avatar e Nome do Usuário -->
           <div class="avatar-container">
-            <button id="avatarBtn" class="avatar-btn" data-toggle="modal" data-target="#loginModal">
+            <button id="avatarBtn" class="avatar-btn" data-bs-toggle="modal" data-bs-target="#loginModal">
               <img id="userAvatar" src="" alt="Avatar" style="display: none;">
               <i class="fas fa-user"></i>
             </button>
@@ -71,73 +71,69 @@
     </nav>
 
     <!-- Modal de Login -->
-    <div class="modal fade" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="loginModalLabel" aria-hidden="true">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="loginModalLabel">Login</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-          <div class="modal-body">
-            <form id="loginForm" onsubmit="handleLogin(event)">
-              <div class="form-group">
-                <label for="loginEmail">Email</label>
-                <input type="email" class="form-control" id="loginEmail" required>
-              </div>
-              <div class="form-group">
-                <label for="loginPassword">Senha</label>
-                <input type="password" class="form-control" id="loginPassword" required>
-              </div>
-              <button type="submit" class="btn btn-primary">Entrar</button>
-            </form>
-            <p class="mt-3">
-              Não tem uma conta? 
-              <a href="#" data-toggle="modal" data-target="#registerModal" data-dismiss="modal">Registre-se</a>
-            </p>
-          </div>
+    <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="loginModalLabel">Login</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="loginForm">
+                        <div class="form-group">
+                            <label for="loginEmail">Email</label>
+                            <input type="email" class="form-control" id="loginEmail" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="loginPassword">Senha</label>
+                            <input type="password" class="form-control" id="loginPassword" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Entrar</button>
+                    </form>
+                    <p class="mt-3">
+                        Não tem uma conta? 
+                        <a href="#" data-bs-toggle="modal" data-bs-target="#registerModal" data-bs-dismiss="modal">Registre-se</a>
+                    </p>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
 
     <!-- Modal de Registro -->
-    <div class="modal fade" id="registerModal" tabindex="-1" role="dialog" aria-labelledby="registerModalLabel" aria-hidden="true">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="registerModalLabel">Registro</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-          <div class="modal-body">
-            <form id="registerForm" onsubmit="handleRegister(event)">
-              <div class="form-group">
-                <label for="registerName">Nome</label>
-                <input type="text" class="form-control" id="registerName" required>
-              </div>
-              <div class="form-group">
-                <label for="registerEmail">Email</label>
-                <input type="email" class="form-control" id="registerEmail" required>
-              </div>
-              <div class="form-group">
-                <label for="registerPassword">Senha</label>
-                <input type="password" class="form-control" id="registerPassword" required>
-              </div>
-              <div class="form-group">
-                <label for="registerAvatar">Avatar (opcional)</label>
-                <input type="file" class="form-control-file" id="registerAvatar" accept="image/*">
-              </div>
-              <button type="submit" class="btn btn-primary">Registrar</button>
-            </form>
-            <p class="mt-3">
-              Já tem uma conta? 
-              <a href="#" data-toggle="modal" data-target="#loginModal" data-dismiss="modal">Faça login</a>
-            </p>
-          </div>
+    <div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="registerModalLabel">Registro</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="registerForm">
+                        <div class="form-group">
+                            <label for="registerName">Nome</label>
+                            <input type="text" class="form-control" id="registerName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="registerEmail">Email</label>
+                            <input type="email" class="form-control" id="registerEmail" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="registerPassword">Senha</label>
+                            <input type="password" class="form-control" id="registerPassword" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="registerAvatar">Avatar (opcional)</label>
+                            <input type="file" class="form-control-file" id="registerAvatar" accept="image/*">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Registrar</button>
+                    </form>
+                    <p class="mt-3">
+                        Já tem uma conta? 
+                        <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal" data-bs-dismiss="modal">Faça login</a>
+                    </p>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
 
     <!-- Modal de Detalhes do Mangá -->
@@ -179,6 +175,62 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Doação de Mangá -->
+    <div class="modal fade" id="donationModal" tabindex="-1" aria-labelledby="donationModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="donationModalLabel">Doar Mangá</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="donationForm">
+                        <div class="form-group mb-3">
+                            <label for="mangaTitle">Título do Mangá</label>
+                            <input type="text" class="form-control" id="mangaTitle" required>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="mangaAuthor">Autor</label>
+                            <input type="text" class="form-control" id="mangaAuthor" required>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="mangaStatus">Status</label>
+                            <select class="form-control" id="mangaStatus" required>
+                                <option value="EM ANDAMENTO">Em Andamento</option>
+                                <option value="EM LANÇAMENTO">Em Lançamento</option>
+                                <option value="CONCLUÍDO">Concluído</option>
+                            </select>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="mangaRating">Nota (0-10)</label>
+                            <input type="number" class="form-control" id="mangaRating" min="0" max="10" step="0.1" required>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="mangaChapters">Número de Capítulos</label>
+                            <input type="number" class="form-control" id="mangaChapters" min="1" required>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="mangaGenres">Gêneros (separados por vírgula)</label>
+                            <input type="text" class="form-control" id="mangaGenres" placeholder="Ação, Aventura, Fantasia" required>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="mangaSynopsis">Sinopse</label>
+                            <textarea class="form-control" id="mangaSynopsis" rows="4" required></textarea>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="mangaCover">Capa do Mangá</label>
+                            <input type="file" class="form-control" id="mangaCover" accept="image/*" required>
+                            <div class="cover-preview mt-2">
+                                <img id="coverPreview" src="" alt="Preview da capa" style="display: none; max-width: 200px; border-radius: 8px;">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Doar Mangá</button>
+                    </form>
                 </div>
             </div>
         </div>
@@ -461,7 +513,12 @@
       <section class="section">
         <div class="section-header">
           <h2>Últimas Atualizações</h2>
-          <a href="#" class="view-all">Ver todos</a>
+          <div class="section-actions">
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#donationModal">
+              <i class="fas fa-plus"></i> Doar Mangá
+            </button>
+            <a href="#" class="view-all">Ver Todos</a>
+          </div>
         </div>
         <div class="updates-carousel">
           <div class="carousel-container">

@@ -1,4 +1,12 @@
 {
   "users": [
+    {
+      "id": 1748122793552,
+      "nome": "Devyd",
+      "email": "devydsilva103@gmail.com",
+      "senha": "$2a$10$i9YVT67nggQXilzM7EPLQ.g7ZMDyW16uP9ODFsn9FSXf1bHeVMMIW",
+      "avatar": "/Front-end/src/img/avatars/1748122793340-387692945.png",
+      "dataCadastro": "2025-05-24T21:39:53.553Z"
+    }
   ]
 }

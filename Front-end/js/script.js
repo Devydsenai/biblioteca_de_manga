@@ -194,22 +194,27 @@
             this.avatarInput = document.getElementById('registerAvatar');
             this.avatarPreview = document.getElementById('avatarPreview');
             this.userNameDisplay = document.getElementById('userNameDisplay');
+            this.avatarBtn = document.getElementById('avatarBtn');
             this.setupEventListeners();
             this.checkAuthStatus();
         },
 
         setupEventListeners() {
             // Login Form
-            this.loginForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                this.handleLogin();
-            });
+            if (this.loginForm) {
+                this.loginForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.handleLogin();
+                });
+            }
 
             // Register Form
-            this.registerForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                this.handleRegister();
-            });
+            if (this.registerForm) {
+                this.registerForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.handleRegister();
+                });
+            }
 
             // Avatar Upload Preview
             if (this.avatarInput) {
@@ -225,23 +230,21 @@
                 });
             }
 
-            // Password Confirmation
-            const registerPassword = document.getElementById('registerPassword');
-            const confirmPassword = document.getElementById('registerConfirmPassword');
-            
-            confirmPassword.addEventListener('input', () => {
-                if (registerPassword.value !== confirmPassword.value) {
-                    confirmPassword.setCustomValidity('As senhas não coincidem');
-                } else {
-                    confirmPassword.setCustomValidity('');
-                }
-            });
+            // Avatar Button Click
+            if (this.avatarBtn) {
+                this.avatarBtn.addEventListener('click', () => {
+                    const token = localStorage.getItem('token');
+                    if (!token) {
+                        const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
+                        loginModal.show();
+                    }
+                });
+            }
         },
 
         async handleLogin() {
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
-            const rememberMe = document.getElementById('rememberMe').checked;
 
             try {
                 const response = await fetch('http://localhost:3001/api/auth/login', {
@@ -255,17 +258,40 @@
                 const data = await response.json();
 
                 if (response.ok) {
+                    // Salvar dados do usuário
                     localStorage.setItem('token', data.token);
                     localStorage.setItem('userName', data.user.nome);
                     localStorage.setItem('userAvatar', data.user.avatar || '../img/default-avatar.png');
                     
+                    // Fechar o modal de login
+                    const loginModal = bootstrap.Modal.getInstance(document.getElementById('loginModal'));
+                    loginModal.hide();
+
+                    // Limpar o formulário de login
+                    this.loginForm.reset();
+                    
+                    // Mostrar mensagem de sucesso
                     this.showNotification('Login realizado com sucesso!', 'success');
+                    
+                    // Atualizar o estado do avatar e nome do usuário
                     this.updateAvatarState(true);
-                    bootstrap.Modal.getInstance(document.getElementById('authModal')).hide();
+
+                    // Atualizar a interface
+                    const userAvatar = document.getElementById('userAvatar');
+                    const userName = document.getElementById('userName');
+                    
+                    if (data.user.avatar) {
+                        userAvatar.src = data.user.avatar;
+                        userAvatar.style.display = 'block';
+                    }
+                    
+                    userName.textContent = data.user.nome;
+                    userName.style.display = 'block';
                 } else {
                     this.showNotification(data.message || 'Erro ao fazer login', 'error');
                 }
             } catch (error) {
+                console.error('Erro ao fazer login:', error);
                 this.showNotification('Erro ao fazer login. Tente novamente.', 'error');
             }
         },
@@ -275,12 +301,6 @@
             const email = document.getElementById('registerEmail').value;
             const password = document.getElementById('registerPassword').value;
             const avatarFile = this.avatarInput.files[0];
-            const agreeTerms = document.getElementById('agreeTerms').checked;
-
-            if (!agreeTerms) {
-                this.showNotification('Você precisa concordar com os termos de uso.', 'error');
-                return;
-            }
 
             try {
                 // Primeiro, fazer upload do avatar se houver
@@ -317,17 +337,27 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    localStorage.setItem('token', data.token);
-                    localStorage.setItem('userName', data.user.nome);
-                    localStorage.setItem('userAvatar', data.user.avatar);
-                    
-                    this.showNotification('Conta criada com sucesso!', 'success');
-                    this.updateAvatarState(true);
-                    bootstrap.Modal.getInstance(document.getElementById('authModal')).hide();
+                    // Fechar o modal de registro
+                    const registerModal = bootstrap.Modal.getInstance(document.getElementById('registerModal'));
+                    registerModal.hide();
+
+                    // Mostrar mensagem de sucesso
+                    this.showNotification('Conta criada com sucesso! Agora você pode fazer login.', 'success');
+
+                    // Limpar o formulário de registro
+                    this.registerForm.reset();
+
+                    // Abrir o modal de login
+                    const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
+                    loginModal.show();
+
+                    // Preencher o email no formulário de login
+                    document.getElementById('loginEmail').value = email;
                 } else {
                     this.showNotification(data.message || 'Erro ao criar conta', 'error');
                 }
             } catch (error) {
+                console.error('Erro ao criar conta:', error);
                 this.showNotification('Erro ao criar conta. Tente novamente.', 'error');
             }
         },
@@ -343,27 +373,37 @@
         },
 
         updateAvatarState(isLoggedIn) {
-            const avatarBtn = document.querySelector('.avatar-btn');
-            const userName = localStorage.getItem('userName');
-            const userAvatar = localStorage.getItem('userAvatar');
+            const avatarBtn = document.getElementById('avatarBtn');
+            const userAvatar = document.getElementById('userAvatar');
+            const userName = document.getElementById('userName');
+            const token = localStorage.getItem('token');
+            const storedUserName = localStorage.getItem('userName');
+            const storedAvatar = localStorage.getItem('userAvatar');
 
-            if (isLoggedIn && userName) {
+            if (isLoggedIn && token && storedUserName) {
                 // Atualizar o avatar
-                if (userAvatar) {
-                    avatarBtn.innerHTML = `<img src="${userAvatar}" alt="${userName}">`;
+                if (storedAvatar) {
+                    userAvatar.src = storedAvatar;
+                    userAvatar.style.display = 'block';
+                    avatarBtn.innerHTML = '';
+                    avatarBtn.appendChild(userAvatar);
                 } else {
+                    userAvatar.style.display = 'none';
                     avatarBtn.innerHTML = '<i class="fas fa-user-check"></i>';
                 }
                 
                 // Mostrar o nome do usuário
-                this.userNameDisplay.textContent = userName;
-                this.userNameDisplay.style.display = 'block';
+                userName.textContent = storedUserName;
+                userName.style.display = 'block';
                 
+                // Adicionar classe para estilo do usuário logado
                 avatarBtn.classList.add('logged-in');
             } else {
-                avatarBtn.innerHTML = '<i class="fas fa-user-circle"></i>';
-                this.userNameDisplay.style.display = 'none';
+                // Resetar para o estado padrão
                 avatarBtn.classList.remove('logged-in');
+                userAvatar.style.display = 'none';
+                avatarBtn.innerHTML = '<i class="fas fa-user"></i>';
+                userName.style.display = 'none';
             }
         },
 
@@ -397,6 +437,8 @@
             this.currentIndex = 0;
             this.cardsPerView = this.getCardsPerView();
             this.setupEventListeners();
+            this.setupInfiniteCarousel();
+            this.startAutoSlide();
             this.updateCarousel();
         },
 
@@ -409,9 +451,29 @@
             return 1;
         },
 
+        setupInfiniteCarousel() {
+            // Clonar os primeiros cards para criar o efeito infinito
+            const firstCards = Array.from(this.cards).slice(0, this.cardsPerView);
+            firstCards.forEach(card => {
+                const clone = card.cloneNode(true);
+                this.track.appendChild(clone);
+            });
+        },
+
         setupEventListeners() {
             this.prevBtn.addEventListener('click', () => this.slide('prev'));
             this.nextBtn.addEventListener('click', () => this.slide('next'));
+            
+            // Pausar o carrossel quando o mouse estiver sobre ele
+            this.track.addEventListener('mouseenter', () => {
+                this.stopAutoSlide();
+            });
+            
+            // Retomar o carrossel quando o mouse sair
+            this.track.addEventListener('mouseleave', () => {
+                this.startAutoSlide();
+            });
+            
             window.addEventListener('resize', () => {
                 this.cardsPerView = this.getCardsPerView();
                 this.updateCarousel();
@@ -419,7 +481,7 @@
         },
 
         slide(direction) {
-            if (direction === 'next' && this.currentIndex < this.cards.length - this.cardsPerView) {
+            if (direction === 'next') {
                 this.currentIndex++;
             } else if (direction === 'prev' && this.currentIndex > 0) {
                 this.currentIndex--;
@@ -435,6 +497,28 @@
             this.prevBtn.style.opacity = this.currentIndex === 0 ? '0.5' : '1';
             this.nextBtn.style.opacity = 
                 this.currentIndex >= this.cards.length - this.cardsPerView ? '0.5' : '1';
+                
+            // Verifica se chegou ao final dos cards originais
+            if (this.currentIndex >= this.cards.length) {
+                // Reseta para o início sem animação
+                this.track.style.transition = 'none';
+                this.currentIndex = 0;
+                this.track.style.transform = `translateX(0)`;
+                // Força um reflow
+                this.track.offsetHeight;
+                // Restaura a transição
+                this.track.style.transition = 'transform 0.5s ease';
+            }
+        },
+
+        startAutoSlide() {
+            this.autoSlideInterval = setInterval(() => {
+                this.slide('next');
+            }, 3000); // Muda a cada 3 segundos
+        },
+
+        stopAutoSlide() {
+            clearInterval(this.autoSlideInterval);
         }
     };
 
@@ -457,6 +541,13 @@
                             window.innerWidth > 768 ? 3 :
                             window.innerWidth > 576 ? 2 : 1;
         
+        // Clonar os primeiros cards para criar o efeito infinito
+        const firstCards = Array.from(cards).slice(0, cardsPerView);
+        firstCards.forEach(card => {
+            const clone = card.cloneNode(true);
+            track.appendChild(clone);
+        });
+        
         function updateCarousel() {
             const offset = currentIndex * cardWidth;
             track.style.transform = `translateX(-${offset}px)`;
@@ -464,13 +555,23 @@
             // Atualiza estado dos botões
             prevButton.style.opacity = currentIndex === 0 ? '0.5' : '1';
             nextButton.style.opacity = currentIndex >= cards.length - cardsPerView ? '0.5' : '1';
+            
+            // Verifica se chegou ao final dos cards originais
+            if (currentIndex >= cards.length) {
+                // Reseta para o início sem animação
+                track.style.transition = 'none';
+                currentIndex = 0;
+                track.style.transform = `translateX(0)`;
+                // Força um reflow
+                track.offsetHeight;
+                // Restaura a transição
+                track.style.transition = 'transform 0.5s ease';
+            }
         }
         
         function nextSlide() {
-            if (currentIndex < cards.length - cardsPerView) {
-                currentIndex++;
-                updateCarousel();
-            }
+            currentIndex++;
+            updateCarousel();
         }
         
         function prevSlide() {
@@ -483,6 +584,19 @@
         // Event listeners para os botões
         nextButton.addEventListener('click', nextSlide);
         prevButton.addEventListener('click', prevSlide);
+        
+        // Iniciar o carrossel automático
+        let autoSlideInterval = setInterval(nextSlide, 3000); // Muda a cada 3 segundos
+        
+        // Pausar o carrossel quando o mouse estiver sobre ele
+        track.addEventListener('mouseenter', () => {
+            clearInterval(autoSlideInterval);
+        });
+        
+        // Retomar o carrossel quando o mouse sair
+        track.addEventListener('mouseleave', () => {
+            autoSlideInterval = setInterval(nextSlide, 3000);
+        });
         
         // Atualiza o carrossel quando a janela é redimensionada
         window.addEventListener('resize', function() {
@@ -524,13 +638,13 @@
         }
 
         const resultsHTML = mangas.map(manga => `
-            <div class="manga-card">
+            <div class="manga-card" data-manga-id="${manga.id}">
                 <img src="${manga.imagem}" alt="${manga.titulo}" class="manga-image">
                 <div class="manga-info">
                     <h3>${manga.titulo}</h3>
                     <p class="author">Autor: ${manga.autor}</p>
                     <p class="status">Status: ${manga.status}</p>
-                    <p class="rating">Nota: ${manga.nota}/10</p>
+                    <p class="rating"><span class="star">★</span> ${manga.nota}/10</p>
                     <p class="chapters">Capítulos: ${manga.capitulos}</p>
                     <div class="genres">
                         ${manga.generos.map(genero => `<span class="genre-tag">${genero}</span>`).join('')}
@@ -542,6 +656,17 @@
 
         searchResultsContainer.innerHTML = resultsHTML;
         searchResultsContainer.classList.add('active');
+
+        // Adicionar evento de clique nos cards
+        const mangaCards = searchResultsContainer.querySelectorAll('.manga-card');
+        mangaCards.forEach(card => {
+            card.addEventListener('click', () => {
+                const mangaId = card.dataset.mangaId;
+                if (mangaId) {
+                    loadMangaDetails(mangaId);
+                }
+            });
+        });
     }
 
     // Adicionar evento de pesquisa
@@ -803,120 +928,135 @@
         }
     });
 
-    // Função para atualizar o estado do avatar e nome do usuário
-    function updateAvatarState() {
-        const avatarBtn = document.getElementById('avatarBtn');
-        const userAvatar = document.getElementById('userAvatar');
-        const userName = document.getElementById('userName');
-        const token = localStorage.getItem('token');
-        const storedUserName = localStorage.getItem('userName');
-        const storedAvatar = localStorage.getItem('userAvatar');
-
-        if (token && storedUserName) {
-            avatarBtn.classList.add('logged-in');
-            if (storedAvatar) {
-                userAvatar.src = storedAvatar;
-                userAvatar.style.display = 'block';
-                avatarBtn.innerHTML = '';
-                avatarBtn.appendChild(userAvatar);
-            } else {
-                userAvatar.style.display = 'none';
-                avatarBtn.innerHTML = '<i class="fas fa-user"></i>';
-            }
-            userName.textContent = storedUserName;
-            userName.style.display = 'block';
-        } else {
-            avatarBtn.classList.remove('logged-in');
-            userAvatar.style.display = 'none';
-            avatarBtn.innerHTML = '<i class="fas fa-user"></i>';
-            userName.style.display = 'none';
-        }
-    }
-
-    // Função para lidar com o login
-    async function handleLogin(event) {
-        event.preventDefault();
-        const email = document.getElementById('loginEmail').value;
-        const password = document.getElementById('loginPassword').value;
-
-        try {
-            const response = await fetch('http://localhost:3001/api/auth/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ email, password })
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                localStorage.setItem('token', data.token);
-                localStorage.setItem('userName', data.user.name);
-                if (data.user.avatar) {
-                    localStorage.setItem('userAvatar', data.user.avatar);
-                }
-                updateAvatarState();
-                $('#loginModal').modal('hide');
-                showToast('Login realizado com sucesso!', 'success');
-            } else {
-                showToast(data.message || 'Erro ao fazer login', 'error');
-            }
-        } catch (error) {
-            console.error('Erro ao fazer login:', error);
-            showToast('Erro ao fazer login. Tente novamente.', 'error');
-        }
-    }
-
-    // Função para lidar com o registro
-    async function handleRegister(event) {
-        event.preventDefault();
-        const name = document.getElementById('registerName').value;
-        const email = document.getElementById('registerEmail').value;
-        const password = document.getElementById('registerPassword').value;
-        const avatarFile = document.getElementById('registerAvatar').files[0];
-
-        const formData = new FormData();
-        formData.append('name', name);
-        formData.append('email', email);
-        formData.append('password', password);
-        if (avatarFile) {
-            formData.append('avatar', avatarFile);
-        }
-
-        try {
-            const response = await fetch('http://localhost:3001/api/auth/register', {
-                method: 'POST',
-                body: formData
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                localStorage.setItem('token', data.token);
-                localStorage.setItem('userName', data.user.name);
-                if (data.user.avatar) {
-                    localStorage.setItem('userAvatar', data.user.avatar);
-                }
-                updateAvatarState();
-                $('#registerModal').modal('hide');
-                showToast('Registro realizado com sucesso!', 'success');
-            } else {
-                showToast(data.message || 'Erro ao fazer registro', 'error');
-            }
-        } catch (error) {
-            console.error('Erro ao fazer registro:', error);
-            showToast('Erro ao fazer registro. Tente novamente.', 'error');
-        }
-    }
-
     // Função para fazer logout
     function handleLogout() {
         localStorage.removeItem('token');
         localStorage.removeItem('userName');
         localStorage.removeItem('userAvatar');
-        updateAvatarState();
+        updateAvatarState(false);
         showToast('Logout realizado com sucesso!', 'success');
     }
+
+    // Gerenciamento de Doação de Mangá
+    const donation = {
+        init() {
+            this.form = document.getElementById('donationForm');
+            this.coverInput = document.getElementById('mangaCover');
+            this.coverPreview = document.getElementById('coverPreview');
+            this.setupEventListeners();
+        },
+
+        setupEventListeners() {
+            // Preview da imagem da capa
+            if (this.coverInput) {
+                this.coverInput.addEventListener('change', (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            this.coverPreview.src = e.target.result;
+                            this.coverPreview.style.display = 'block';
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+            }
+
+            // Submissão do formulário
+            if (this.form) {
+                this.form.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.handleDonation();
+                });
+            }
+        },
+
+        async handleDonation() {
+            const formData = new FormData();
+            formData.append('titulo', document.getElementById('mangaTitle').value);
+            formData.append('autor', document.getElementById('mangaAuthor').value);
+            formData.append('status', document.getElementById('mangaStatus').value);
+            formData.append('nota', document.getElementById('mangaRating').value);
+            formData.append('capitulos', document.getElementById('mangaChapters').value);
+            formData.append('generos', document.getElementById('mangaGenres').value);
+            formData.append('sinopse', document.getElementById('mangaSynopsis').value);
+            formData.append('imagem', this.coverInput.files[0]);
+
+            try {
+                const response = await fetch('http://localhost:3001/api/mangas/donate', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Fechar o modal
+                    const donationModal = bootstrap.Modal.getInstance(document.getElementById('donationModal'));
+                    donationModal.hide();
+
+                    // Limpar o formulário
+                    this.form.reset();
+                    this.coverPreview.style.display = 'none';
+
+                    // Mostrar mensagem de sucesso
+                    this.showNotification('Mangá doado com sucesso!', 'success');
+
+                    // Atualizar a seção de últimas atualizações
+                    this.updateLatestUpdates(data.manga);
+                } else {
+                    this.showNotification(data.message || 'Erro ao doar mangá', 'error');
+                }
+            } catch (error) {
+                console.error('Erro ao doar mangá:', error);
+                this.showNotification('Erro ao doar mangá. Tente novamente.', 'error');
+            }
+        },
+
+        updateLatestUpdates(manga) {
+            const updatesContainer = document.querySelector('.carousel-track');
+            if (!updatesContainer) return;
+
+            // Criar novo card
+            const newCard = document.createElement('div');
+            newCard.className = 'update-card';
+            newCard.innerHTML = `
+                <img src="${manga.imagem}" alt="${manga.titulo}">
+                <div class="chapter-badge">Cap. ${manga.capitulos}</div>
+                <div class="update-info">
+                    <span class="update-time">Agora mesmo</span>
+                    <span class="update-views"><i class="fas fa-eye"></i> 0</span>
+                </div>
+            `;
+
+            // Adicionar o novo card no início do carrossel
+            updatesContainer.insertBefore(newCard, updatesContainer.firstChild);
+
+            // Remover o último card se houver mais de 10 cards
+            const cards = updatesContainer.querySelectorAll('.update-card');
+            if (cards.length > 10) {
+                updatesContainer.removeChild(cards[cards.length - 1]);
+            }
+        },
+
+        showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+
+            document.body.appendChild(notification);
+            setTimeout(() => notification.classList.add('show'), 100);
+
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+    };
+
+    // Inicializar doação quando o DOM estiver pronto
+    document.addEventListener('DOMContentLoaded', () => {
+        donation.init();
+    });
 
 })(); 
