@@ -1,0 +1,9 @@
+*.node_modules
+*.yarn
+*.yarn-error.log
+*.log
+.DS_Store
+.env.local
+.env.development.local
+package-lock.json
+package.json
