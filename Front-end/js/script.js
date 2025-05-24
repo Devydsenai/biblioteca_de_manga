@@ -38,8 +38,7 @@
     const handleSearch = (event) => {
         const searchTerm = event.target.value.trim();
         if (searchTerm.length >= 3) {
-            // Implement search logic here
-            console.log(`Searching for: ${searchTerm}`);
+            searchManga(searchTerm);
         }
     };
 
@@ -48,6 +47,8 @@
      * @param {HTMLElement} card - The card element
      */
     const handleCardHover = (card) => {
+        if (!card) return;
+        
         card.addEventListener('mouseenter', () => {
             card.style.transform = 'translateY(-8px)';
             card.style.boxShadow = '0 8px 24px rgba(24, 249, 196, 0.2)';
@@ -63,6 +64,8 @@
      * Handles navbar scroll effect
      */
     const handleNavbarScroll = () => {
+        if (!elements.navbar) return;
+        
         window.addEventListener('scroll', () => {
             if (window.scrollY > 50) {
                 elements.navbar.style.background = 'rgba(16, 16, 26, 0.95)';
@@ -80,9 +83,10 @@
      */
     const handleAuth = (type) => {
         const authBtn = type === 'login' ? elements.loginBtn : elements.registerBtn;
+        if (!authBtn) return;
+        
         authBtn.addEventListener('click', (e) => {
             e.preventDefault();
-            // Implement authentication logic here
             console.log(`${type} clicked`);
         });
     };
@@ -92,10 +96,11 @@
      * @param {HTMLElement} link - The link element
      */
     const handleViewAll = (link) => {
+        if (!link) return;
+        
         link.addEventListener('click', (e) => {
             e.preventDefault();
-            const section = link.closest('.section').querySelector('h2').textContent;
-            // Implement view all logic here
+            const section = link.closest('.section')?.querySelector('h2')?.textContent;
             console.log(`View all clicked for: ${section}`);
         });
     };
@@ -105,11 +110,13 @@
      */
     const initializeEventListeners = () => {
         // Search functionality with debounce
-        let searchTimeout;
-        elements.searchInput.addEventListener('input', (e) => {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => handleSearch(e), CONFIG.searchDelay);
-        });
+        if (elements.searchInput) {
+            let searchTimeout;
+            elements.searchInput.addEventListener('input', (e) => {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => handleSearch(e), CONFIG.searchDelay);
+            });
+        }
 
         // Card hover effects
         elements.cards.forEach(handleCardHover);
@@ -184,7 +191,11 @@
         init() {
             this.loginForm = document.getElementById('loginForm');
             this.registerForm = document.getElementById('registerForm');
+            this.avatarInput = document.getElementById('registerAvatar');
+            this.avatarPreview = document.getElementById('avatarPreview');
+            this.userNameDisplay = document.getElementById('userNameDisplay');
             this.setupEventListeners();
+            this.checkAuthStatus();
         },
 
         setupEventListeners() {
@@ -199,6 +210,20 @@
                 e.preventDefault();
                 this.handleRegister();
             });
+
+            // Avatar Upload Preview
+            if (this.avatarInput) {
+                this.avatarInput.addEventListener('change', (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            this.avatarPreview.src = e.target.result;
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+            }
 
             // Password Confirmation
             const registerPassword = document.getElementById('registerPassword');
@@ -219,13 +244,27 @@
             const rememberMe = document.getElementById('rememberMe').checked;
 
             try {
-                // Aqui você implementaria a chamada real para sua API
-                console.log('Login attempt:', { email, password, rememberMe });
-                
-                // Simulação de login bem-sucedido
-                this.showNotification('Login realizado com sucesso!', 'success');
-                this.updateAvatarState(true);
-                bootstrap.Modal.getInstance(document.getElementById('authModal')).hide();
+                const response = await fetch('http://localhost:3001/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, senha: password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('userName', data.user.nome);
+                    localStorage.setItem('userAvatar', data.user.avatar || '../img/default-avatar.png');
+                    
+                    this.showNotification('Login realizado com sucesso!', 'success');
+                    this.updateAvatarState(true);
+                    bootstrap.Modal.getInstance(document.getElementById('authModal')).hide();
+                } else {
+                    this.showNotification(data.message || 'Erro ao fazer login', 'error');
+                }
             } catch (error) {
                 this.showNotification('Erro ao fazer login. Tente novamente.', 'error');
             }
@@ -235,6 +274,7 @@
             const name = document.getElementById('registerName').value;
             const email = document.getElementById('registerEmail').value;
             const password = document.getElementById('registerPassword').value;
+            const avatarFile = this.avatarInput.files[0];
             const agreeTerms = document.getElementById('agreeTerms').checked;
 
             if (!agreeTerms) {
@@ -243,46 +283,102 @@
             }
 
             try {
-                // Aqui você implementaria a chamada real para sua API
-                console.log('Register attempt:', { name, email, password });
-                
-                // Simulação de registro bem-sucedido
-                this.showNotification('Conta criada com sucesso!', 'success');
-                this.updateAvatarState(true);
-                bootstrap.Modal.getInstance(document.getElementById('authModal')).hide();
+                // Primeiro, fazer upload do avatar se houver
+                let avatarUrl = '../img/default-avatar.png';
+                if (avatarFile) {
+                    const formData = new FormData();
+                    formData.append('avatar', avatarFile);
+                    
+                    const uploadResponse = await fetch('http://localhost:3001/api/upload/avatar', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (uploadResponse.ok) {
+                        const uploadData = await uploadResponse.json();
+                        avatarUrl = uploadData.avatarUrl;
+                    }
+                }
+
+                // Depois, registrar o usuário
+                const response = await fetch('http://localhost:3001/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        nome: name,
+                        email,
+                        senha: password,
+                        avatar: avatarUrl
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('userName', data.user.nome);
+                    localStorage.setItem('userAvatar', data.user.avatar);
+                    
+                    this.showNotification('Conta criada com sucesso!', 'success');
+                    this.updateAvatarState(true);
+                    bootstrap.Modal.getInstance(document.getElementById('authModal')).hide();
+                } else {
+                    this.showNotification(data.message || 'Erro ao criar conta', 'error');
+                }
             } catch (error) {
                 this.showNotification('Erro ao criar conta. Tente novamente.', 'error');
             }
         },
 
-        showNotification(message, type) {
-            // Criar elemento de notificação
-            const notification = document.createElement('div');
-            notification.className = `notification ${type}`;
-            notification.textContent = message;
+        checkAuthStatus() {
+            const token = localStorage.getItem('token');
+            const userName = localStorage.getItem('userName');
+            const userAvatar = localStorage.getItem('userAvatar');
 
-            // Adicionar ao DOM
-            document.body.appendChild(notification);
-
-            // Animar entrada
-            setTimeout(() => notification.classList.add('show'), 100);
-
-            // Remover após 3 segundos
-            setTimeout(() => {
-                notification.classList.remove('show');
-                setTimeout(() => notification.remove(), 300);
-            }, 3000);
+            if (token && userName) {
+                this.updateAvatarState(true);
+            }
         },
 
         updateAvatarState(isLoggedIn) {
             const avatarBtn = document.querySelector('.avatar-btn');
-            if (isLoggedIn) {
-                avatarBtn.innerHTML = '<i class="fas fa-user-check"></i>';
+            const userName = localStorage.getItem('userName');
+            const userAvatar = localStorage.getItem('userAvatar');
+
+            if (isLoggedIn && userName) {
+                // Atualizar o avatar
+                if (userAvatar) {
+                    avatarBtn.innerHTML = `<img src="${userAvatar}" alt="${userName}">`;
+                } else {
+                    avatarBtn.innerHTML = '<i class="fas fa-user-check"></i>';
+                }
+                
+                // Mostrar o nome do usuário
+                this.userNameDisplay.textContent = userName;
+                this.userNameDisplay.style.display = 'block';
+                
                 avatarBtn.classList.add('logged-in');
             } else {
                 avatarBtn.innerHTML = '<i class="fas fa-user-circle"></i>';
+                this.userNameDisplay.style.display = 'none';
                 avatarBtn.classList.remove('logged-in');
             }
+        },
+
+        showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+
+            document.body.appendChild(notification);
+            setTimeout(() => notification.classList.add('show'), 100);
+
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
         }
     };
 
@@ -404,5 +500,403 @@
         // Inicializa o carrossel
         updateCarousel();
     });
+
+    // Função para pesquisar mangás
+    async function searchManga(query) {
+        try {
+            const response = await fetch(`http://localhost:3001/api/mangas/search?query=${encodeURIComponent(query)}`);
+            const mangas = await response.json();
+            displaySearchResults(mangas);
+        } catch (error) {
+            console.error('Erro ao pesquisar mangás:', error);
+        }
+    }
+
+    // Função para exibir os resultados da pesquisa
+    function displaySearchResults(mangas) {
+        const searchResultsContainer = document.getElementById('search-results');
+        if (!searchResultsContainer) return;
+
+        if (mangas.length === 0) {
+            searchResultsContainer.innerHTML = '<p class="no-results">Nenhum mangá encontrado.</p>';
+            searchResultsContainer.classList.add('active');
+            return;
+        }
+
+        const resultsHTML = mangas.map(manga => `
+            <div class="manga-card">
+                <img src="${manga.imagem}" alt="${manga.titulo}" class="manga-image">
+                <div class="manga-info">
+                    <h3>${manga.titulo}</h3>
+                    <p class="author">Autor: ${manga.autor}</p>
+                    <p class="status">Status: ${manga.status}</p>
+                    <p class="rating">Nota: ${manga.nota}/10</p>
+                    <p class="chapters">Capítulos: ${manga.capitulos}</p>
+                    <div class="genres">
+                        ${manga.generos.map(genero => `<span class="genre-tag">${genero}</span>`).join('')}
+                    </div>
+                    <p class="sinopse">${manga.sinopse}</p>
+                </div>
+            </div>
+        `).join('');
+
+        searchResultsContainer.innerHTML = resultsHTML;
+        searchResultsContainer.classList.add('active');
+    }
+
+    // Adicionar evento de pesquisa
+    document.addEventListener('DOMContentLoaded', () => {
+        const searchForm = document.getElementById('search-form');
+        const searchInput = document.getElementById('search-input');
+        const searchResults = document.getElementById('search-results');
+
+        if (searchForm && searchInput) {
+            let searchTimeout;
+
+            searchForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const query = searchInput.value.trim();
+                if (query) {
+                    searchManga(query);
+                }
+            });
+
+            // Pesquisa em tempo real enquanto o usuário digita
+            searchInput.addEventListener('input', (e) => {
+                const query = e.target.value.trim();
+                clearTimeout(searchTimeout);
+                
+                if (query.length >= 2) {
+                    searchTimeout = setTimeout(() => {
+                        searchManga(query);
+                    }, 300);
+                } else {
+                    searchResults.classList.remove('active');
+                }
+            });
+
+            // Fechar resultados ao clicar fora
+            document.addEventListener('click', (e) => {
+                if (!searchForm.contains(e.target) && !searchResults.contains(e.target)) {
+                    searchResults.classList.remove('active');
+                }
+            });
+
+            // Manter resultados visíveis ao passar o mouse
+            searchResults.addEventListener('mouseenter', () => {
+                searchResults.classList.add('active');
+            });
+
+            searchResults.addEventListener('mouseleave', () => {
+                if (!searchInput.value.trim()) {
+                    searchResults.classList.remove('active');
+                }
+            });
+        }
+    });
+
+    // Função para carregar os detalhes do mangá no modal
+    async function loadMangaDetails(mangaId) {
+        try {
+            // Buscar informações do mangá
+            const mangaResponse = await fetch(`http://localhost:3001/api/mangas/${mangaId}`);
+            const manga = await mangaResponse.json();
+
+            // Buscar status do mangá
+            const statusResponse = await fetch(`http://localhost:3001/api/manga/${mangaId}/status`);
+            const status = await statusResponse.json();
+
+            // Preencher o modal com as informações
+            document.getElementById('modalMangaImage').src = manga.imagem;
+            document.getElementById('modalMangaTitle').textContent = manga.titulo;
+            document.getElementById('modalMangaAuthor').textContent = `Autor: ${manga.autor}`;
+            document.getElementById('modalMangaStatus').textContent = `Status: ${manga.status}`;
+            document.getElementById('modalMangaRating').textContent = `Nota: ${manga.nota}`;
+            document.getElementById('modalMangaChapters').textContent = `Capítulos: ${manga.capitulos}`;
+            document.getElementById('modalMangaSinopse').textContent = manga.sinopse;
+
+            // Preencher os gêneros
+            const genresContainer = document.getElementById('modalMangaGenres');
+            genresContainer.innerHTML = '';
+            manga.generos.forEach(genero => {
+                const span = document.createElement('span');
+                span.textContent = genero;
+                genresContainer.appendChild(span);
+            });
+
+            // Atualizar o status do mangá
+            const statusBadge = document.getElementById('mangaStatusBadge');
+            statusBadge.textContent = status.status === 'disponivel' ? 'Disponível' : 'Em Uso';
+            statusBadge.className = `manga-status-badge ${status.status}`;
+
+            // Atualizar os botões de controle
+            const useBtn = document.getElementById('useMangaBtn');
+            const releaseBtn = document.getElementById('releaseMangaBtn');
+            const returnBtn = document.getElementById('returnMangaBtn');
+
+            if (status.status === 'disponivel') {
+                useBtn.style.display = 'block';
+                releaseBtn.style.display = 'none';
+                returnBtn.style.display = 'none';
+            } else if (status.usuarioAtual === parseInt(localStorage.getItem('userId'))) {
+                useBtn.style.display = 'none';
+                releaseBtn.style.display = 'none';
+                returnBtn.style.display = 'block';
+            } else {
+                useBtn.style.display = 'none';
+                releaseBtn.style.display = 'none';
+                returnBtn.style.display = 'none';
+            }
+
+            // Mostrar o modal
+            const modal = new bootstrap.Modal(document.getElementById('mangaModal'));
+            modal.show();
+        } catch (error) {
+            console.error('Erro ao carregar detalhes do mangá:', error);
+            alert('Erro ao carregar detalhes do mangá. Tente novamente.');
+        }
+    }
+
+    // Função para marcar mangá como em uso
+    async function useManga(mangaId) {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            alert('Você precisa estar logado para usar um mangá.');
+            return;
+        }
+
+        const confirmacao = confirm('Você está prestes a marcar este mangá como em uso. Outros usuários não poderão usá-lo enquanto você estiver lendo. Deseja continuar?');
+        if (!confirmacao) return;
+
+        try {
+            const response = await fetch(`http://localhost:3001/api/manga/${mangaId}/use`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                alert('Mangá marcado como em uso com sucesso! Você pode começar a leitura.');
+                loadMangaDetails(mangaId); // Recarregar detalhes para atualizar o status
+            } else {
+                const error = await response.json();
+                alert(error.message || 'Erro ao marcar mangá como em uso.');
+            }
+        } catch (error) {
+            console.error('Erro ao marcar mangá como em uso:', error);
+            alert('Erro ao marcar mangá como em uso. Tente novamente.');
+        }
+    }
+
+    // Função para marcar mangá como disponível
+    async function releaseManga(mangaId) {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            alert('Você precisa estar logado para marcar um mangá como disponível.');
+            return;
+        }
+
+        const confirmacao = confirm('Você está prestes a marcar este mangá como disponível. Outros usuários poderão usá-lo. Deseja continuar?');
+        if (!confirmacao) return;
+
+        try {
+            const response = await fetch(`http://localhost:3001/api/manga/${mangaId}/available`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                alert('Mangá marcado como disponível com sucesso! Outros usuários agora podem usá-lo.');
+                loadMangaDetails(mangaId); // Recarregar detalhes para atualizar o status
+            } else {
+                const error = await response.json();
+                alert(error.message || 'Erro ao marcar mangá como disponível.');
+            }
+        } catch (error) {
+            console.error('Erro ao marcar mangá como disponível:', error);
+            alert('Erro ao marcar mangá como disponível. Tente novamente.');
+        }
+    }
+
+    // Função para devolver mangá
+    async function returnManga(mangaId) {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            alert('Você precisa estar logado para devolver um mangá.');
+            return;
+        }
+
+        const confirmacao = confirm('Você está prestes a devolver este mangá. Deseja confirmar a devolução?');
+        if (!confirmacao) return;
+
+        try {
+            const response = await fetch(`http://localhost:3001/api/manga/${mangaId}/return`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                alert('Mangá devolvido com sucesso! Obrigado por utilizar nossa biblioteca.');
+                loadMangaDetails(mangaId); // Recarregar detalhes para atualizar o status
+            } else {
+                const error = await response.json();
+                alert(error.message || 'Erro ao devolver mangá.');
+            }
+        } catch (error) {
+            console.error('Erro ao devolver mangá:', error);
+            alert('Erro ao devolver mangá. Tente novamente.');
+        }
+    }
+
+    // Adicionar event listeners quando o DOM estiver carregado
+    document.addEventListener('DOMContentLoaded', function() {
+        // Event listener para clicar no card do mangá
+        document.querySelectorAll('.card').forEach(card => {
+            card.addEventListener('click', function() {
+                const mangaId = this.dataset.mangaId;
+                loadMangaDetails(mangaId);
+            });
+        });
+
+        // Event listeners para os botões de controle
+        document.getElementById('useMangaBtn').addEventListener('click', function() {
+            const mangaId = document.querySelector('.card').dataset.mangaId;
+            useManga(mangaId);
+        });
+
+        document.getElementById('releaseMangaBtn').addEventListener('click', function() {
+            const mangaId = document.querySelector('.card').dataset.mangaId;
+            releaseManga(mangaId);
+        });
+
+        document.getElementById('returnMangaBtn').addEventListener('click', function() {
+            const mangaId = document.querySelector('.card').dataset.mangaId;
+            returnManga(mangaId);
+        });
+    });
+
+    // Função para atualizar o estado do avatar e nome do usuário
+    function updateAvatarState() {
+        const avatarBtn = document.getElementById('avatarBtn');
+        const userAvatar = document.getElementById('userAvatar');
+        const userName = document.getElementById('userName');
+        const token = localStorage.getItem('token');
+        const storedUserName = localStorage.getItem('userName');
+        const storedAvatar = localStorage.getItem('userAvatar');
+
+        if (token && storedUserName) {
+            avatarBtn.classList.add('logged-in');
+            if (storedAvatar) {
+                userAvatar.src = storedAvatar;
+                userAvatar.style.display = 'block';
+                avatarBtn.innerHTML = '';
+                avatarBtn.appendChild(userAvatar);
+            } else {
+                userAvatar.style.display = 'none';
+                avatarBtn.innerHTML = '<i class="fas fa-user"></i>';
+            }
+            userName.textContent = storedUserName;
+            userName.style.display = 'block';
+        } else {
+            avatarBtn.classList.remove('logged-in');
+            userAvatar.style.display = 'none';
+            avatarBtn.innerHTML = '<i class="fas fa-user"></i>';
+            userName.style.display = 'none';
+        }
+    }
+
+    // Função para lidar com o login
+    async function handleLogin(event) {
+        event.preventDefault();
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+
+        try {
+            const response = await fetch('http://localhost:3001/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email, password })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('userName', data.user.name);
+                if (data.user.avatar) {
+                    localStorage.setItem('userAvatar', data.user.avatar);
+                }
+                updateAvatarState();
+                $('#loginModal').modal('hide');
+                showToast('Login realizado com sucesso!', 'success');
+            } else {
+                showToast(data.message || 'Erro ao fazer login', 'error');
+            }
+        } catch (error) {
+            console.error('Erro ao fazer login:', error);
+            showToast('Erro ao fazer login. Tente novamente.', 'error');
+        }
+    }
+
+    // Função para lidar com o registro
+    async function handleRegister(event) {
+        event.preventDefault();
+        const name = document.getElementById('registerName').value;
+        const email = document.getElementById('registerEmail').value;
+        const password = document.getElementById('registerPassword').value;
+        const avatarFile = document.getElementById('registerAvatar').files[0];
+
+        const formData = new FormData();
+        formData.append('name', name);
+        formData.append('email', email);
+        formData.append('password', password);
+        if (avatarFile) {
+            formData.append('avatar', avatarFile);
+        }
+
+        try {
+            const response = await fetch('http://localhost:3001/api/auth/register', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('userName', data.user.name);
+                if (data.user.avatar) {
+                    localStorage.setItem('userAvatar', data.user.avatar);
+                }
+                updateAvatarState();
+                $('#registerModal').modal('hide');
+                showToast('Registro realizado com sucesso!', 'success');
+            } else {
+                showToast(data.message || 'Erro ao fazer registro', 'error');
+            }
+        } catch (error) {
+            console.error('Erro ao fazer registro:', error);
+            showToast('Erro ao fazer registro. Tente novamente.', 'error');
+        }
+    }
+
+    // Função para fazer logout
+    function handleLogout() {
+        localStorage.removeItem('token');
+        localStorage.removeItem('userName');
+        localStorage.removeItem('userAvatar');
+        updateAvatarState();
+        showToast('Logout realizado com sucesso!', 'success');
+    }
 
 })(); 

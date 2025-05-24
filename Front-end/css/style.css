@@ -23,6 +23,21 @@ body {
     right: 0;
     z-index: 1000;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    flex-wrap: nowrap;
+}
+
+.navbar .container-fluid {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: nowrap;
+}
+
+.navbar-collapse {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    justify-content: space-between;
 }
 
 /* Logo do site */
@@ -31,16 +46,39 @@ body {
     font-size: 1.8rem;
     font-weight: bold;
     letter-spacing: 2px;
+    margin-right: 40px;
 }
 
 /* Container da barra de pesquisa */
 .search-container {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    background: rgba(24, 24, 40, 0.8);
+    border: 1px solid rgba(24, 249, 196, 0.2);
+    border-radius: 8px;
+    padding: 6px 12px;
+    width: 40px;
+    transition: all 0.3s ease;
+    overflow: hidden;
+    margin-left: 20px;
+    max-width: 250px;
+    backdrop-filter: blur(10px);
+    flex-shrink: 0;
+    z-index: 1001;
+}
+
+.search-container:focus-within {
+    width: 250px;
+    border-color: #18f9c4;
+    box-shadow: 0 0 15px rgba(24, 249, 196, 0.1);
+}
+
+.search-form {
     display: flex;
     align-items: center;
-    background: #181828;
-    border-radius: 24px;
-    padding: 8px 16px;
-    width: 300px;
+    width: 100%;
+    position: relative;
 }
 
 .search-input {
@@ -48,12 +86,21 @@ body {
     border: none;
     color: #fff;
     width: 100%;
-    padding: 8px;
+    padding: 4px 8px;
     font-size: 0.9rem;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    outline: none;
+    flex: 1;
+    min-width: 0;
+}
+
+.search-container:focus-within .search-input {
+    opacity: 1;
 }
 
 .search-input::placeholder {
-    color: #bdbdd7;
+    color: rgba(189, 189, 215, 0.6);
 }
 
 .search-button {
@@ -62,6 +109,46 @@ body {
     color: #18f9c4;
     cursor: pointer;
     padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    z-index: 2;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.search-container:focus-within .search-button {
+    right: 12px;
+}
+
+.search-button:hover {
+    color: #fff;
+    transform: translateY(-50%) scale(1.1);
+}
+
+/* Resultados da pesquisa */
+.search-results {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: rgba(24, 24, 40, 0.95);
+    border-radius: 8px;
+    margin-top: 8px;
+    padding: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+    z-index: 1000;
+    display: none;
+}
+
+.search-results.active {
+    display: block;
 }
 
 /* Links de navegação */
@@ -69,8 +156,9 @@ body {
     list-style: none;
     display: flex;
     gap: 24px;
-    margin: 0;
+    margin: 0 20px;
     padding: 0;
+    flex-shrink: 0;
 }
 
 .nav-links a {
@@ -94,6 +182,7 @@ body {
     display: flex;
     gap: 16px;
     align-items: center;
+    flex-shrink: 0;
 }
 
 .login-btn, .register-btn {
@@ -442,12 +531,20 @@ footer {
     .navbar {
         flex-wrap: wrap;
         gap: 16px;
+        padding: 16px 20px;
+    }
+    
+    .logo {
+        margin-right: 20px;
     }
     
     .search-container {
-        order: 3;
-        width: 100%;
-        margin-top: 16px;
+        margin-left: 10px;
+        max-width: 180px;
+    }
+    
+    .search-container:focus-within {
+        width: 180px;
     }
     
     .nav-links {
@@ -464,6 +561,16 @@ footer {
     
     .cards {
         grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
+}
+
+@media (max-width: 576px) {
+    .search-container {
+        max-width: 140px;
+    }
+    
+    .search-container:focus-within {
+        width: 140px;
     }
 }
 
@@ -536,109 +643,129 @@ footer {
    Avatar e Modal de Autenticação
    ========================================================================== */
 .avatar-container {
-    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 4px 8px;
+    border-radius: 20px;
+    transition: all 0.3s ease;
+}
+
+.avatar-container:hover {
+    background: rgba(24, 249, 196, 0.1);
 }
 
 .avatar-btn {
     background: none;
     border: none;
-    color: #18f9c4;
-    font-size: 2rem;
+    color: #fff;
+    font-size: 1.5rem;
     cursor: pointer;
-    padding: 0;
-    transition: transform 0.2s;
+    padding: 5px;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
 }
 
 .avatar-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
     transform: scale(1.1);
 }
 
-/* Modal de Autenticação */
-.modal-content {
-    background: #181828;
-    border: 1px solid #18f9c4;
-    border-radius: 16px;
+.avatar-btn img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #18f9c4;
 }
 
-.modal-header {
-    border-bottom: 1px solid rgba(24, 249, 196, 0.2);
-    padding: 20px;
-}
-
-.modal-body {
-    padding: 20px;
-}
-
-.btn-close {
-    filter: invert(1) grayscale(100%) brightness(200%);
-}
-
-/* Tabs de Autenticação */
-.nav-tabs {
-    border: none;
-    gap: 16px;
-}
-
-.nav-tabs .nav-link {
-    color: #bdbdd7;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 8px;
-    transition: all 0.2s;
-}
-
-.nav-tabs .nav-link:hover {
-    color: #18f9c4;
-    background: rgba(24, 249, 196, 0.1);
-}
-
-.nav-tabs .nav-link.active {
-    color: #18f9c4;
-    background: rgba(24, 249, 196, 0.1);
+.user-name {
+    color: #fff;
+    font-size: 0.9rem;
     font-weight: 500;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 150px;
 }
 
-/* Formulários */
+/* Estilos para o upload de avatar */
+.avatar-upload {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.avatar-preview {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin: 0 auto;
+    border: 2px solid #18f9c4;
+}
+
+.avatar-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+#registerAvatar {
+    max-width: 100%;
+}
+
+/* Estilos para o modal de autenticação */
 .auth-form {
-    padding: 20px 0;
+    padding: 20px;
 }
 
 .form-group {
-    margin-bottom: 20px;
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    color: #333;
+    font-weight: 500;
 }
 
 .form-control {
-    background: #10101a;
-    border: 1px solid rgba(24, 249, 196, 0.2);
-    border-radius: 8px;
-    color: #fff;
-    padding: 12px;
-    transition: all 0.2s;
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
 }
 
 .form-control:focus {
-    background: #10101a;
     border-color: #18f9c4;
-    color: #fff;
-    box-shadow: 0 0 0 0.2rem rgba(24, 249, 196, 0.25);
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(24, 249, 196, 0.2);
 }
 
-.form-control::placeholder {
-    color: #bdbdd7;
+.form-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
 }
 
 .form-check-input {
-    background-color: #10101a;
-    border-color: rgba(24, 249, 196, 0.2);
-}
-
-.form-check-input:checked {
-    background-color: #18f9c4;
-    border-color: #18f9c4;
+    margin: 0;
 }
 
 .form-check-label {
-    color: #bdbdd7;
+    font-size: 14px;
+    color: #666;
 }
 
 .form-check-label a {
@@ -730,7 +857,7 @@ footer {
         transform: scale(1);
     }
     50% {
-        transform: scale(1.2);
+        transform: scale(1.1);
     }
     100% {
         transform: scale(1);
@@ -1196,5 +1323,221 @@ footer {
         border-bottom: 4px solid #18f9c4;
         padding-left: 0;
         padding-bottom: 8px;
+    }
+}
+
+/* Estilos para os resultados da pesquisa */
+#search-results {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.manga-card {
+    display: flex;
+    background: var(--card-bg);
+    border-radius: 8px;
+    margin-bottom: 20px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.manga-card:hover {
+    transform: translateY(-5px);
+}
+
+.manga-image {
+    width: 200px;
+    height: 300px;
+    object-fit: cover;
+}
+
+.manga-info {
+    padding: 20px;
+    flex: 1;
+}
+
+.manga-info h3 {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+    color: var(--text-color);
+}
+
+.manga-info p {
+    margin: 5px 0;
+    color: var(--text-secondary);
+}
+
+.genres {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 10px 0;
+}
+
+.genre-tag {
+    background: var(--accent-color);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
+
+.sinopse {
+    margin-top: 15px;
+    line-height: 1.5;
+    color: var(--text-secondary);
+}
+
+.no-results {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-secondary);
+    font-size: 1.2rem;
+}
+
+/* Responsividade para os resultados da pesquisa */
+@media (max-width: 768px) {
+    .manga-card {
+        flex-direction: column;
+    }
+
+    .manga-image {
+        width: 100%;
+        height: 200px;
+    }
+
+    .manga-info {
+        padding: 15px;
+    }
+}
+
+/* Estilos do Modal de Detalhes do Mangá */
+.manga-details {
+    display: flex;
+    gap: 2rem;
+    padding: 1rem;
+}
+
+.manga-image-container {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.manga-detail-image {
+    width: 250px;
+    height: 350px;
+    object-fit: cover;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.manga-status-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    color: white;
+}
+
+.manga-status-badge.disponivel {
+    background-color: #28a745;
+}
+
+.manga-status-badge.em-uso {
+    background-color: #dc3545;
+}
+
+.manga-info-container {
+    flex-grow: 1;
+}
+
+.manga-info-container h3 {
+    font-size: 1.8rem;
+    margin-bottom: 0.5rem;
+    color: #333;
+}
+
+.manga-info-container .author {
+    font-size: 1.1rem;
+    color: #666;
+    margin-bottom: 1rem;
+}
+
+.manga-info-container .status,
+.manga-info-container .rating,
+.manga-info-container .chapters {
+    font-size: 1rem;
+    color: #555;
+    margin-bottom: 0.5rem;
+}
+
+.manga-info-container .genres {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 1rem 0;
+}
+
+.manga-info-container .genres span {
+    background-color: #f0f0f0;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.manga-info-container .sinopse {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: #444;
+    margin-top: 1rem;
+}
+
+.manga-controls {
+    margin-top: 2rem;
+    display: flex;
+    gap: 1rem;
+}
+
+.manga-controls button {
+    padding: 0.5rem 1.5rem;
+    font-size: 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.manga-controls button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsividade do Modal */
+@media (max-width: 768px) {
+    .manga-details {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .manga-detail-image {
+        width: 200px;
+        height: 280px;
+    }
+
+    .manga-info-container {
+        text-align: center;
+    }
+
+    .manga-info-container .genres {
+        justify-content: center;
+    }
+
+    .manga-controls {
+        justify-content: center;
     }
 }

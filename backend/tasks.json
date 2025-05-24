@@ -1,0 +1,58 @@
+{
+  "mangas": [
+    {
+      "id": 1,
+      "titulo": "One Piece",
+      "autor": "Eiichiro Oda",
+      "status": "Em Andamento",
+      "nota": 9.8,
+      "capitulos": 1090,
+      "generos": ["Ação", "Aventura", "Fantasia"],
+      "imagem": "https://via.placeholder.com/200x300"
+    },
+    {
+      "id": 2,
+      "titulo": "Naruto",
+      "autor": "Masashi Kishimoto",
+      "status": "Concluído",
+      "nota": 9.5,
+      "capitulos": 700,
+      "generos": ["Ação", "Aventura", "Fantasia"],
+      "imagem": "https://via.placeholder.com/200x300"
+    },
+    {
+      "id": 3,
+      "titulo": "Dragon Ball",
+      "autor": "Akira Toriyama",
+      "status": "Concluído",
+      "nota": 9.3,
+      "capitulos": 519,
+      "generos": ["Ação", "Aventura", "Fantasia"],
+      "imagem": "https://via.placeholder.com/200x300"
+    },
+    {
+      "id": 4,
+      "titulo": "Bleach",
+      "autor": "Tite Kubo",
+      "status": "Em Andamento",
+      "nota": 9.2,
+      "capitulos": 686,
+      "generos": ["Ação", "Fantasia", "Sobrenatural"],
+      "imagem": "https://via.placeholder.com/200x300"
+    },
+    {
+      "id": 5,
+      "titulo": "Death Note",
+      "autor": "Tsugumi Ohba",
+      "status": "Concluído",
+      "nota": 9.7,
+      "capitulos": 108,
+      "generos": ["Suspense", "Psicológico", "Sobrenatural"],
+      "imagem": "https://via.placeholder.com/200x300"
+    }
+  ],
+  "mangasEmLeitura": [],
+  "mangasLidos": [],
+  "historicoLeitura": []
+}
+
