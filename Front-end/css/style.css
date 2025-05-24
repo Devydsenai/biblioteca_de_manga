@@ -130,7 +130,7 @@ body {
     text-align: center;
     padding: 160px 20px 80px 20px;
     background: linear-gradient(rgba(16, 16, 26, 0.7), rgba(16, 16, 26, 0.9)),
-                url('img/fotos-da-akatsuki.jpg') center/cover no-repeat;
+                url('../src/img/fotos-da-akatsuki.jpg') center/cover no-repeat;
     position: relative;
     overflow: hidden;
 }
@@ -142,7 +142,7 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background: url('img/fotos-da-akatsuki.jpg') center/contain no-repeat;
+    background: url('../src/img/fotos-da-akatsuki.jpg') center/contain no-repeat;
     opacity: 0.2;
     z-index: 1;
     animation: float 8s ease-in-out infinite;
