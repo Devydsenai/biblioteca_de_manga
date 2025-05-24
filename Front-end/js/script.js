@@ -347,4 +347,62 @@
         carousel.init();
     });
 
+    // Carrossel do Top 10
+    document.addEventListener('DOMContentLoaded', function() {
+        const track = document.querySelector('.top10-track');
+        const cards = document.querySelectorAll('.top10-card');
+        const prevButton = document.querySelector('.top10-control.prev');
+        const nextButton = document.querySelector('.top10-control.next');
+        
+        let currentIndex = 0;
+        const cardWidth = cards[0].offsetWidth + 24; // Largura do card + gap
+        const cardsPerView = window.innerWidth > 1200 ? 5 : 
+                            window.innerWidth > 992 ? 4 :
+                            window.innerWidth > 768 ? 3 :
+                            window.innerWidth > 576 ? 2 : 1;
+        
+        function updateCarousel() {
+            const offset = currentIndex * cardWidth;
+            track.style.transform = `translateX(-${offset}px)`;
+            
+            // Atualiza estado dos botões
+            prevButton.style.opacity = currentIndex === 0 ? '0.5' : '1';
+            nextButton.style.opacity = currentIndex >= cards.length - cardsPerView ? '0.5' : '1';
+        }
+        
+        function nextSlide() {
+            if (currentIndex < cards.length - cardsPerView) {
+                currentIndex++;
+                updateCarousel();
+            }
+        }
+        
+        function prevSlide() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                updateCarousel();
+            }
+        }
+        
+        // Event listeners para os botões
+        nextButton.addEventListener('click', nextSlide);
+        prevButton.addEventListener('click', prevSlide);
+        
+        // Atualiza o carrossel quando a janela é redimensionada
+        window.addEventListener('resize', function() {
+            const newCardsPerView = window.innerWidth > 1200 ? 5 : 
+                                  window.innerWidth > 992 ? 4 :
+                                  window.innerWidth > 768 ? 3 :
+                                  window.innerWidth > 576 ? 2 : 1;
+            
+            if (newCardsPerView !== cardsPerView) {
+                currentIndex = 0;
+                updateCarousel();
+            }
+        });
+        
+        // Inicializa o carrossel
+        updateCarousel();
+    });
+
 })(); 
