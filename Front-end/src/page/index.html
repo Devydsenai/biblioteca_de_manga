@@ -40,23 +40,23 @@
 
         <!-- Conteúdo da navbar -->
         <div class="collapse navbar-collapse" id="navbarContent">
-          <!-- Barra de pesquisa -->
-          <div class="search-container">
-            <form id="search-form" class="search-form">
-                <input type="text" id="search-input" placeholder="Pesquisar mangás..." class="search-input">
-                <button type="submit" class="search-button">
-                    <i class="fas fa-search"></i>
-                </button>
-            </form>
-          </div>
-          <div id="search-results" class="search-results"></div>
-
           <!-- Links de navegação -->
           <ul class="nav-links navbar-nav mx-auto">
             <li class="nav-item"><a class="nav-link active" href="#">Início</a></li>
             <li class="nav-item"><a class="nav-link" href="#">Todos os Mangás</a></li>
             <li class="nav-item"><a class="nav-link" href="#">Em lançamento</a></li>
           </ul>
+
+          <!-- Barra de pesquisa -->
+          <div class="search-container" style="margin-right: 20px;">
+            <form id="search-form" class="search-form">
+              <input type="text" id="search-input" placeholder="Pesquisar mangás..." class="search-input">
+              <button type="submit" class="search-button" style="margin-left: 10px; display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-search"></i>
+              </button>
+            </form>
+          </div>
+          <div id="search-results" class="search-results"></div>
 
           <!-- Avatar e Nome do Usuário -->
           <div class="avatar-container">
@@ -244,7 +244,7 @@
         <!-- Botões de ação principal -->
         <div class="hero-buttons">
           <a href="#" class="btn">COMEÇAR A LER</a>
-          <a href="#" class="btn btn-outline">FAZER DOAÇÃO</a>
+          <a href="#" class="btn btn-outline" data-bs-toggle="modal" data-bs-target="#donationModal">FAZER DOAÇÃO</a>
         </div>
       </div>
     </header>
