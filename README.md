@@ -54,6 +54,14 @@ O projeto utiliza as seguintes dependências:
    npm start
    ```
 
+4. Isntala node
+   ```bash
+   npm init -y
+   npm install express cors:
+   npm install node sever.js
+   npm install bcryptjs jsonwebtoken multer
+   ```
+
 O servidor será iniciado e estará disponível em http://localhost:3001.
 
 ## Observações
