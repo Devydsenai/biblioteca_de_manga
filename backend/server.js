@@ -164,6 +164,24 @@ app.post('/api/leitura/adicionar', (req, res) => {
     }
 });
 
+// Rota para remover um mangá da lista de leitura
+app.delete('/api/leitura/remover/:id', (req, res) => {
+    const data = readTasksFile();
+    const mangaIndex = data.mangasEmLeitura.findIndex(m => m.id === parseInt(req.params.id));
+    
+    if (mangaIndex === -1) {
+        return res.status(404).json({ message: 'Mangá não encontrado na lista de leitura' });
+    }
+    
+    const mangaRemovido = data.mangasEmLeitura.splice(mangaIndex, 1)[0];
+    
+    if (saveTasksFile(data)) {
+        res.json({ message: 'Mangá removido da lista de leitura', manga: mangaRemovido });
+    } else {
+        res.status(500).json({ message: 'Erro ao remover mangá' });
+    }
+});
+
 // Rota para marcar um mangá como lido
 app.post('/api/leitura/concluir/:id', (req, res) => {
     const data = readTasksFile();
