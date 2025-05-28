@@ -120,6 +120,61 @@
       "generos": ["Ação", "Comédia", "Super-herói"],
       "imagem": "/img/OnePunchMan.png",
       "sinopse": "Saitama é um herói que pode derrotar qualquer oponente com apenas um soco, mas sua força o deixou entediado com a falta de desafios."
+    },
+    {
+      "id": 12,
+      "titulo": "Tokyo Ghoul",
+      "autor": "Sui Ishida",
+      "status": "Finalizado",
+      "nota": 9.4,
+      "capitulos": 14,
+      "generos": ["Ação", "Comédia", "Ficção"],
+      "imagem": "/img/TokyoGhoul.png",
+      "sinopse": "Ken Kaneki é um estudante universitário que se torna meio ghoul após um encontro fatídico. Ele precisa aprender a viver em um mundo onde humanos e ghouls coexistem."
+    },
+    {
+      "id": 13,
+      "titulo": "Konosuba",
+      "autor": "Natsume Akatsuki",
+      "status": "Em Andamento",
+      "nota": 8.9,
+      "capitulos": 20,
+      "generos": ["Isekai", "Comédia", "Light Novel"],
+      "imagem": "/img/Konosuba.png",
+      "sinopse": "Kazuma Satou é um jovem que morre e é reencarnado em um mundo de fantasia. Ele forma um grupo com uma deusa, uma maga e uma guerreira para enfrentar monstros e completar missões."
+    },
+    {
+      "id": 14,
+      "titulo": "Hunter x Hunter",
+      "autor": "Yoshihiro Togashi",
+      "status": "Em Andamento",
+      "nota": 9.4,
+      "capitulos": 400,
+      "generos": ["Ação", "Comédia", "Aventura"],
+      "imagem": "/img/HunterXHunter.png",
+      "sinopse": "Gon Freecss é um jovem que descobre que seu pai, que ele acreditava estar morto, é um caçador lendário. Ele decide se tornar um caçador para encontrá-lo e descobrir mais sobre sua origem."
+    },
+    {
+      "id": 15,
+      "titulo": "Ranma 1/2",
+      "autor": "Natsume Akatsuki",
+      "status": "Concluído",
+      "nota": 8.5,
+      "capitulos": 407,
+      "generos": ["Ação", "Comédia", "Aventura"],
+      "imagem": "/img/Ranma.png",
+      "sinopse": "Ranma Saotome é um jovem artista marcial que, após um acidente em uma fonte amaldiçoada, se transforma em uma garota sempre que é molhado com água fria. Ele deve encontrar uma cura enquanto lida com suas novas circunstâncias e os desafios de sua vida dupla."
+    },
+    {
+      "id": 16,
+      "titulo": "Koruko no Basket",
+      "autor": "Tadatoshi Fujimaki",
+      "status": "Concluído",
+      "nota": 9.1,
+      "capitulos": 275,
+      "generos": ["Ação", "Comédia", "Esportes"],
+      "imagem": "/img/KorukoNoBasket.png",
+      "sinopse": ""
     }
   ]
 } 

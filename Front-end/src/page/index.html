@@ -40,6 +40,7 @@
 
         <!-- Conteúdo da navbar -->
         <div class="collapse navbar-collapse" id="navbarContent">
+
           <!-- Links de navegação -->
           <ul class="nav-links navbar-nav mx-auto">
             <li class="nav-item"><a class="nav-link active" href="#">Início</a></li>
@@ -48,12 +49,21 @@
           </ul>
 
           <!-- Barra de pesquisa -->
+
           <div class="search-container" style="margin-right: 20px;">
             <form id="search-form" class="search-form">
               <input type="text" id="search-input" placeholder="Pesquisar mangás..." class="search-input">
               <button type="submit" class="search-button" style="margin-left: 10px; display: flex; align-items: center; justify-content: center;">
                 <i class="fas fa-search"></i>
               </button>
+
+          <div class="search-container">
+            <form id="search-form" class="search-form">
+                <input type="text" id="search-input" placeholder="Pesquisar mangás..." class="search-input">
+                <button type="submit" class="search-button">
+                    <i class="fas fa-search"></i>
+                </button>
+
             </form>
           </div>
           <div id="search-results" class="search-results"></div>
@@ -260,6 +270,8 @@
         <!-- Grid de cards de mangás -->
         <div class="cards">
           <!-- Card de mangá individual -->
+
+          <!--One Piece-->
           <div class="card" data-manga-id="1">
             <img src="../img/OnePiece.png" alt="One Piece">
             <div class="card-info">
@@ -268,47 +280,88 @@
             </div>
             <span class="badge andamento">EM ANDAMENTO</span>
           </div>
+          <!--Naruto-->
           <div class="card" data-manga-id="2">
             <img src="../img/Naruto.png" alt="Naruto">
             <div class="card-info">
               <h3>Naruto</h3>
               <p><span class="star">★</span> 9.5</p>
             </div>
-            <span class="badge andamento">EM ANDAMENTO</span>
+            <span class="badge concluido">Concluído</span>
           </div>
+          <!--Dragon Ball-->
           <div class="card" data-manga-id="3">
             <img src="../img/DragonBall.png" alt="Dragon Ball">
             <div class="card-info">
               <h3>Dragon Ball</h3>
               <p><span class="star">★</span> 9.3</p>
             </div>
-            <span class="badge andamento">EM ANDAMENTO</span>
+            <span class="badge andamento">Em Andamento</span>
           </div>
+          <!--Bleach-->
           <div class="card" data-manga-id="4">
             <img src="../img/Bleach.png" alt="Bleach">
             <div class="card-info">
               <h3>Bleach</h3>
               <p><span class="star">★</span> 9.2</p>
             </div>
-            <span class="badge lancamento">EM LANÇAMENTO</span>
+            <span class="badge concluido">Concluído</span>
           </div>
+          <!--Death Note-->
           <div class="card" data-manga-id="5">
             <img src="../img/DeathNote.png" alt="Death Note">
             <div class="card-info">
               <h3>Death Note</h3>
               <p><span class="star">★</span> 9.7</p>
             </div>
-            <span class="badge andamento">EM ANDAMENTO</span>
+            <span class="badge concluido">Concluído</span>
           </div>
+          <!--Atack on Titan-->
           <div class="card" data-manga-id="6">
             <img src="../img/AttackOnTItan.png" alt="Attack on Titan">
             <div class="card-info">
               <h3>Attack on Titan</h3>
               <p><span class="star">★</span> 9.6</p>
             </div>
-            <span class="badge andamento">EM ANDAMENTO</span>
+            <span class="badge concluido">Concluído</span>
           </div>
-        </div>
+          <!--Konosuba-->
+          <div class="card" data-manga-id="7">
+            <img src="../img/Konosuba.png" alt="Konosuba">
+            <div class="card-info">
+              <h3>Konosuba</h3>
+              <p><span class="star">★</span> 8.9</p>
+            </div>
+            <span class="badge andamento">Em Andamento</span>
+          </div>
+          <!--Hunter x Hunter-->
+          <div class="card" data-manga-id="8">
+            <img src="../img/HunterXHunter.png" alt="Hunter x Hunter">
+            <div class="card-info">
+              <h3>Hunter x Hunter</h3>
+              <p><span class="star">★</span> 9.4</p>
+            </div>
+            <span class="badge andamento">Em Andamento</span>
+          </div>
+          <!--Ranma 1/2-->
+          <div class="card" data-manga-id="9">
+            <img src="../img/Ranma.png" alt="Ranma 1/2">
+            <div class="card-info">
+              <h3>Ranma 1/2</h3>
+              <p><span class="star">★</span> 8.5</p>
+            </div>
+            <span class="badge concluido">Concluído</span>
+          </div>
+          <!--Kuroko no Basket-->
+          <div class="card" data-manga-id="10">
+            <img src="../img/KurokoNoBasket.png" alt="Kuroko no Basket">
+            <div class="card-info">
+              <h3>Kuroko no Basket</h3>
+              <p><span class="star">★</span> 9.1</p>
+            </div>
+            <span class="badge concluido">Concluído</span>
+          </div>
+
       </section>
 
       <!-- Seção Top 10 -->
@@ -458,54 +511,7 @@
           <a href="#" class="view-all">Ver todos</a>
         </div>
         <div class="cards">
-          <div class="card" data-manga-id="7">
-            <img src="../img/JujutsuKaisen.png" alt="Jujutsu Kaisen">
-            <div class="card-info">
-              <h3>Jujutsu Kaisen</h3>
-              <p><span class="star">★</span> 9.4</p>
-            </div>
-            <span class="badge lancamento">EM LANÇAMENTO</span>
-          </div>
-          <div class="card" data-manga-id="8">
-            <img src="../img/DemonSlayer.png" alt="Demon Slayer">
-            <div class="card-info">
-              <h3>Demon Slayer</h3>
-              <p><span class="star">★</span> 9.5</p>
-            </div>
-            <span class="badge andamento">EM ANDAMENTO</span>
-          </div>
-          <div class="card" data-manga-id="9">
-            <img src="../img/MyHeroAcademia.png" alt="My Hero Academia">
-            <div class="card-info">
-              <h3>My Hero Academia</h3>
-              <p><span class="star">★</span> 9.3</p>
-            </div>
-            <span class="badge andamento">EM ANDAMENTO</span>
-          </div>
-          <div class="card" data-manga-id="10">
-            <img src="../img/ChainsawMan.png" alt="Chainsaw Man">
-            <div class="card-info">
-              <h3>Chainsaw Man</h3>
-              <p><span class="star">★</span> 9.7</p>
-            </div>
-            <span class="badge lancamento">EM LANÇAMENTO</span>
-          </div>
-          <div class="card" data-manga-id="11">
-            <img src="../img/OnePunchMan.png" alt="One Punch Man">
-            <div class="card-info">
-              <h3>One Punch Man</h3>
-              <p><span class="star">★</span> 9.6</p>
-            </div>
-            <span class="badge andamento">EM ANDAMENTO</span>
-          </div>
-          <div class="card" data-manga-id="12">
-            <img src="../img/JujutsuKaisen.png" alt="Jujutsu Kaisen">
-            <div class="card-info">
-              <h3>Jujutsu Kaisen</h3>
-              <p><span class="star">★</span> 9.4</p>
-            </div>
-            <span class="badge lancamento">EM LANÇAMENTO</span>
-          </div>
+          
         </div>
       </section>
 
@@ -525,16 +531,16 @@
             <div class="carousel-track">
               <!-- Card 1 -->
               <div class="card update-card" data-manga-id="13">
-                <img src="../img/JujutsuKaisen.png" alt="Jujutsu Kaisen">
+                <img src="../img/TokyoGhoul.png" alt="Tokyo Ghoul">
                 <div class="card-info">
-                  <h3>Jujutsu Kaisen</h3>
+                  <h3>Tokyo Ghoul</h3>
                   <p><span class="star">★</span> 9.4</p>
                   <div class="update-info">
                     <span class="update-time">Há 2 horas</span>
                     <span class="update-views"><i class="fas fa-eye"></i> 1.2k</span>
                   </div>
                 </div>
-                <span class="badge lancamento">EM LANÇAMENTO</span>
+                <span class="badge lancamento">FINALIZADO</span>
               </div>
               <!-- Card 2 -->
               <div class="card update-card" data-manga-id="14">

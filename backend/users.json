@@ -7,6 +7,14 @@
       "senha": "$2a$10$i9YVT67nggQXilzM7EPLQ.g7ZMDyW16uP9ODFsn9FSXf1bHeVMMIW",
       "avatar": "/Front-end/src/img/avatars/1748122793340-387692945.png",
       "dataCadastro": "2025-05-24T21:39:53.553Z"
+    },
+    {
+      "id": 1748307638267,
+      "nome": "gui",
+      "email": "guilhermecesar8463@gmail.com",
+      "senha": "$2a$10$AV0wtC6zq38eOooLmIzesOQ9YDn3mcXn7/38/lsd3tsSs4EI8vvN6",
+      "avatar": "/Front-end/src/img/avatars/1748307637253-541623994.png",
+      "dataCadastro": "2025-05-27T01:00:38.267Z"
     }
   ]
 }

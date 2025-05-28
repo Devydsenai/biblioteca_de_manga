@@ -57,7 +57,7 @@ O projeto utiliza as seguintes dependências:
 4. Isntala node
    ```bash
    npm init -y
-   npm install express cors:
+   npm install express cors
    npm install node sever.js
    npm install bcryptjs jsonwebtoken multer
    ```
