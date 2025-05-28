@@ -42,11 +42,13 @@ body {
 
 /* Logo do site */
 .logo {
+    font-family: "Roboto Slab", serif;
     color: #18f9c4;
     font-size: 1.8rem;
     font-weight: bold;
     letter-spacing: 2px;
     margin-right: 40px;
+    text-decoration: none;
 }
 
 /* Container da barra de pesquisa */
@@ -255,6 +257,7 @@ body {
 }
 
 .hero-title {
+    font-family: "Roboto Slab", serif;
     font-size: 2.5rem;
     color: #18f9c4;
     text-shadow: 0 0 30px #18f9c4;
@@ -1590,6 +1593,7 @@ footer {
 }
 
 .manga-status-badge {
+    font-family: "Quicksand", sans-serif;
     position: absolute;
     top: 16px;
     right: 16px;
@@ -1618,6 +1622,7 @@ footer {
 .manga-info-container .status,
 .manga-info-container .rating,
 .manga-info-container .chapters {
+    font-family: "Josefin Sans", sans-serif;
     font-size: 1.1rem;
     color: #bdbdd7;
     margin-bottom: 0.8rem;
@@ -1652,6 +1657,7 @@ footer {
 }
 
 .manga-info-container .sinopse {
+    font-family: "Cascadia Code", sans-serif;
     font-size: 1rem;
     line-height: 1.6;
     color: #bdbdd7;
