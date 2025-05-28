@@ -258,6 +258,7 @@
                 const data = await response.json();
 
                 if (response.ok) {
+
                     // Salvar dados do usuário
                     localStorage.setItem('token', data.token);
                     localStorage.setItem('userName', data.user.nome);
@@ -303,6 +304,7 @@
             const avatarFile = this.avatarInput.files[0];
 
             try {
+
                 // Primeiro, fazer upload do avatar se houver
                 let avatarUrl = '../img/default-avatar.png';
                 if (avatarFile) {
@@ -337,6 +339,7 @@
                 const data = await response.json();
 
                 if (response.ok) {
+
                     // Fechar o modal de registro
                     const registerModal = bootstrap.Modal.getInstance(document.getElementById('registerModal'));
                     registerModal.hide();
@@ -381,6 +384,7 @@
             const storedAvatar = localStorage.getItem('userAvatar');
 
             if (isLoggedIn && token && storedUserName) {
+
                 // Atualizar o avatar
                 if (storedAvatar) {
                     userAvatar.src = storedAvatar;
@@ -399,6 +403,7 @@
                 // Adicionar classe para estilo do usuário logado
                 avatarBtn.classList.add('logged-in');
             } else {
+
                 // Resetar para o estado padrão
                 avatarBtn.classList.remove('logged-in');
                 userAvatar.style.display = 'none';
@@ -452,6 +457,7 @@
         },
 
         setupInfiniteCarousel() {
+            
             // Clonar os primeiros cards para criar o efeito infinito
             const firstCards = Array.from(this.cards).slice(0, this.cardsPerView);
             firstCards.forEach(card => {
