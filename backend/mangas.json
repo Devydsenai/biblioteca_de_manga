@@ -182,21 +182,6 @@
       "sinopse": "Kazuma Satou é um jovem que morre e é reencarnado em um mundo de fantasia. Ele forma um grupo com uma deusa, uma maga e uma guerreira para enfrentar monstros e completar missões."
     },
     {
-      "id": 14,
-      "titulo": "Hunter x Hunter",
-      "autor": "Yoshihiro Togashi",
-      "status": "Em Andamento",
-      "nota": 9.7,
-      "capitulos": 400,
-      "generos": [
-        "Ação",
-        "Aventura",
-        "Fantasia"
-      ],
-      "imagem": "http://localhost:3001/img/HunterXHunter.png",
-      "sinopse": "Gon Freecss é um jovem que descobre que seu pai, que ele acreditava estar morto, é um caçador lendário. Ele decide se tornar um caçador para encontrá-lo e descobrir mais sobre sua origem."
-    },
-    {
       "id": 1748398975378,
       "titulo": "Pokémon ",
       "autor": "Rica Matsumoto , Ikue Ōtani , Mayumi Iizuka , Yūji Ueda , Megumi Hayashibara e Shin-ichiro Miki ",
@@ -255,6 +240,17 @@
       ],
       "imagem": "http://localhost:3001/img/TokyoGhoul.png",
       "sinopse": "Ken Kaneki é um estudante universitário que se torna meio ghoul após um encontro fatídico. Ele precisa aprender a viver em um mundo onde humanos e ghouls coexistem."
+    },
+    {
+      "id": 15,
+      "titulo": "Ranma 1/2",
+      "autor": "Natsume Akatsuki",
+      "status": "Concluído",
+      "nota": 8.5,
+      "capitulos": 407,
+      "generos": ["Ação", "Comédia", "Aventura"],
+      "imagem": "/img/Ranma.png",
+      "sinopse": "Ranma Saotome é um jovem artista marcial que, após um acidente em uma fonte amaldiçoada, se transforma em uma garota sempre que é molhado com água fria. Ele deve encontrar uma cura enquanto lida com suas novas circunstâncias e os desafios de sua vida dupla."
     },
     {
       "id": 1748446689666,
