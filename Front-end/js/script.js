@@ -25,18 +25,57 @@
         navbar: document.querySelector('.navbar'),
         searchInput: document.querySelector('.search-input'),
         searchButton: document.querySelector('.search-button'),
+        searchForm: document.getElementById('search-form'),
+        searchContainer: document.querySelector('.search-container'),
+        searchResults: document.getElementById('search-results'),
         loginBtn: document.querySelector('.login-btn'),
         registerBtn: document.querySelector('.register-btn'),
         cards: document.querySelectorAll('.card'),
         viewAllLinks: document.querySelectorAll('.view-all')
     };
 
+    // Adicionar cache de imagens
+    const imageCache = new Map();
+
+    // Função para carregar imagem com cache
+    async function loadImageWithCache(url) {
+        if (!url) return null;
+        
+        // Verificar se a URL é válida
+        try {
+            new URL(url);
+        } catch {
+            console.warn(`URL inválida: ${url}`);
+            return null;
+        }
+
+        if (imageCache.has(url)) {
+            return imageCache.get(url);
+        }
+
+        try {
+            const response = await fetch(url);
+            if (!response.ok) {
+                console.warn(`Imagem não encontrada: ${url}`);
+                return null;
+            }
+            const blob = await response.blob();
+            const objectUrl = URL.createObjectURL(blob);
+            imageCache.set(url, objectUrl);
+            return objectUrl;
+        } catch (error) {
+            console.warn(`Erro ao carregar imagem ${url}:`, error);
+            return null;
+        }
+    }
+
     /**
      * Handles the search functionality
      * @param {Event} event - The input event
      */
     const handleSearch = (event) => {
-        const searchTerm = event.target.value.trim();
+        event.preventDefault(); // Prevenir o comportamento padrão do formulário
+        const searchTerm = elements.searchInput.value.trim();
         if (searchTerm.length >= 3) {
             searchManga(searchTerm);
         }
@@ -110,13 +149,34 @@
      */
     const initializeEventListeners = () => {
         // Search functionality with debounce
+        if (elements.searchForm) {
+            elements.searchForm.addEventListener('submit', handleSearch);
+        }
+
         if (elements.searchInput) {
             let searchTimeout;
             elements.searchInput.addEventListener('input', (e) => {
                 clearTimeout(searchTimeout);
-                searchTimeout = setTimeout(() => handleSearch(e), CONFIG.searchDelay);
+                searchTimeout = setTimeout(() => {
+                    const searchTerm = e.target.value.trim();
+                    if (searchTerm.length >= 3) {
+                        searchManga(searchTerm);
+                    }
+                }, CONFIG.searchDelay);
+            });
+
+            // Manter a barra de pesquisa aberta ao clicar
+            elements.searchInput.addEventListener('click', (e) => {
+                e.stopPropagation();
             });
         }
+
+        // Fechar resultados da pesquisa ao clicar fora
+        document.addEventListener('click', (e) => {
+            if (elements.searchResults && !elements.searchContainer.contains(e.target)) {
+                elements.searchResults.classList.remove('active');
+            }
+        });
 
         // Card hover effects
         elements.cards.forEach(handleCardHover);
@@ -258,7 +318,6 @@
                 const data = await response.json();
 
                 if (response.ok) {
-
                     // Salvar dados do usuário
                     localStorage.setItem('token', data.token);
                     localStorage.setItem('userName', data.user.nome);
@@ -304,7 +363,6 @@
             const avatarFile = this.avatarInput.files[0];
 
             try {
-
                 // Primeiro, fazer upload do avatar se houver
                 let avatarUrl = '../img/default-avatar.png';
                 if (avatarFile) {
@@ -339,7 +397,6 @@
                 const data = await response.json();
 
                 if (response.ok) {
-
                     // Fechar o modal de registro
                     const registerModal = bootstrap.Modal.getInstance(document.getElementById('registerModal'));
                     registerModal.hide();
@@ -384,7 +441,6 @@
             const storedAvatar = localStorage.getItem('userAvatar');
 
             if (isLoggedIn && token && storedUserName) {
-
                 // Atualizar o avatar
                 if (storedAvatar) {
                     userAvatar.src = storedAvatar;
@@ -403,7 +459,6 @@
                 // Adicionar classe para estilo do usuário logado
                 avatarBtn.classList.add('logged-in');
             } else {
-
                 // Resetar para o estado padrão
                 avatarBtn.classList.remove('logged-in');
                 userAvatar.style.display = 'none';
@@ -457,7 +512,6 @@
         },
 
         setupInfiniteCarousel() {
-            
             // Clonar os primeiros cards para criar o efeito infinito
             const firstCards = Array.from(this.cards).slice(0, this.cardsPerView);
             firstCards.forEach(card => {
@@ -626,9 +680,180 @@
         try {
             const response = await fetch(`http://localhost:3001/api/mangas/search?query=${encodeURIComponent(query)}`);
             const mangas = await response.json();
-            displaySearchResults(mangas);
+            
+            // Remover duplicatas baseado no ID do mangá
+            const uniqueMangas = mangas.reduce((acc, current) => {
+                const x = acc.find(item => item.id === current.id);
+                if (!x) {
+                    return acc.concat([current]);
+                } else {
+                    return acc;
+                }
+            }, []);
+            
+            displaySearchResults(uniqueMangas);
         } catch (error) {
             console.error('Erro ao pesquisar mangás:', error);
+        }
+    }
+
+    // Função para normalizar a URL da imagem
+    const normalizeImageUrl = (url) => {
+        if (!url) return null;
+        
+        // Se já for uma URL completa, retorna ela mesma
+        if (url.startsWith('http')) return url;
+        
+        // Se for um caminho relativo, converte para URL completa
+        if (url.startsWith('/img/')) return `http://localhost:3001${url}`;
+        if (url.startsWith('../img/')) return `http://localhost:3001/img/${url.split('/').pop()}`;
+        
+        // Se for apenas o nome do arquivo
+        return `http://localhost:3001/img/${url}`;
+    };
+
+    // Função para verificar se a imagem existe
+    async function checkImageExists(url) {
+        if (!url) return false;
+        
+        try {
+            // Usar GET em vez de HEAD para maior compatibilidade
+            const response = await fetch(url, { 
+                method: 'GET',
+                cache: 'no-cache',
+                headers: {
+                    'Accept': 'image/*'
+                }
+            });
+            
+            // Verificar se a resposta é uma imagem válida
+            const contentType = response.headers.get('content-type');
+            return response.ok && contentType && contentType.startsWith('image/');
+        } catch (error) {
+            console.warn(`Erro ao verificar imagem ${url}:`, error);
+            return false;
+        }
+    }
+
+    async function loadMangaDetails(mangaId) {
+        try {
+            const response = await fetch(`http://localhost:3001/api/mangas/${mangaId}`);
+            
+            if (!response.ok) {
+                throw new Error(`Erro ao carregar mangá: ${response.status} ${response.statusText}`);
+            }
+            
+            const manga = await response.json();
+            
+            if (!manga) {
+                throw new Error('Mangá não encontrado');
+            }
+
+            // Carregar imagem com cache
+            const imageUrl = normalizeImageUrl(manga.imagem);
+            let cachedImageUrl = null;
+
+            if (imageUrl) {
+                // Verificar se a imagem existe antes de tentar carregá-la
+                const imageExists = await checkImageExists(imageUrl);
+                if (imageExists) {
+                    cachedImageUrl = await loadImageWithCache(imageUrl);
+                }
+            }
+
+            // Criar o modal de detalhes
+            const modal = document.createElement('div');
+            modal.className = 'modal fade';
+            modal.id = 'mangaDetailsModal';
+            modal.setAttribute('tabindex', '-1');
+            modal.setAttribute('aria-labelledby', 'mangaDetailsModalLabel');
+            modal.setAttribute('role', 'dialog');
+            modal.setAttribute('aria-modal', 'true');
+
+            // SVG placeholder para imagem não encontrada
+            const placeholderSvg = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjUwIiBoZWlnaHQ9IjM1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjUwIiBoZWlnaHQ9IjM1MCIgZmlsbD0iI2YwZjBmMCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIiBmaWxsPSIjNjY2Ij5JbWFnZW0gbmFvIGRpc3Bvbml2ZWw8L3RleHQ+PC9zdmc+';
+
+            modal.innerHTML = `
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="mangaDetailsModalLabel">${manga.titulo}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="manga-details" style="display: flex; gap: 20px; padding: 15px; max-height: 70vh; overflow-y: auto;">
+                                <div class="manga-cover" style="flex: 0 0 300px; max-width: 300px; height: 400px; overflow: hidden; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); background-color: #f5f5f5; display: flex; align-items: center; justify-content: center;">
+                                    <img src="${cachedImageUrl || placeholderSvg}" 
+                                         alt="${manga.titulo}"
+                                         style="width: 100%; height: 100%; object-fit: cover; object-position: center;"
+                                         onerror="this.onerror=null; this.src='${placeholderSvg}'">
+                                </div>
+                                <div class="manga-info" style="flex: 1; min-width: 0; overflow-y: auto;">
+                                    <p style="margin-bottom: 10px; line-height: 1.5;"><strong>Autor:</strong> ${manga.autor}</p>
+                                    <p style="margin-bottom: 10px; line-height: 1.5;"><strong>Status:</strong> ${manga.status}</p>
+                                    <p style="margin-bottom: 10px; line-height: 1.5;"><strong>Nota:</strong> <span class="star" style="color: #ffd700;">★</span> ${manga.nota}/10</p>
+                                    <p style="margin-bottom: 10px; line-height: 1.5;"><strong>Capítulos:</strong> ${manga.capitulos}</p>
+                                    <div class="genres" style="display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0;">
+                                        ${manga.generos.map(genero => `<span class="genre-tag" style="background-color: #e0e0e0; padding: 4px 8px; border-radius: 4px; font-size: 0.9em;">${genero}</span>`).join('')}
+                                    </div>
+                                    <p style="margin-bottom: 10px; line-height: 1.5;"><strong>Sinopse:</strong> ${manga.sinopse || 'Sinopse não disponível.'}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary">Ler</button>
+                            <button type="button" class="btn btn-success">Adicionar à Lista</button>
+                            <button type="button" class="btn btn-warning">Favoritar</button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Remover modal anterior se existir
+            const existingModal = document.getElementById('mangaDetailsModal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+
+            // Adicionar o novo modal ao body
+            document.body.appendChild(modal);
+
+            // Inicializar o modal do Bootstrap
+            const modalInstance = new bootstrap.Modal(modal);
+            modalInstance.show();
+
+        } catch (error) {
+            console.error('Erro ao carregar detalhes do mangá:', error);
+            
+            // Criar um modal de erro mais amigável
+            const errorModal = document.createElement('div');
+            errorModal.className = 'modal fade';
+            errorModal.id = 'errorModal';
+            errorModal.innerHTML = `
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Aviso</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p>${error.message}</p>
+                            <p>Por favor, tente novamente mais tarde.</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(errorModal);
+            const modalInstance = new bootstrap.Modal(errorModal);
+            modalInstance.show();
+
+            // Mostrar notificação
+            showNotification(error.message, 'error');
         }
     }
 
@@ -637,15 +862,30 @@
         const searchResultsContainer = document.getElementById('search-results');
         if (!searchResultsContainer) return;
 
+        // Carregar mangás deletados do localStorage
+        const deletedMangas = JSON.parse(localStorage.getItem('deletedMangas') || '[]');
+
         if (mangas.length === 0) {
             searchResultsContainer.innerHTML = '<p class="no-results">Nenhum mangá encontrado.</p>';
             searchResultsContainer.classList.add('active');
             return;
         }
 
-        const resultsHTML = mangas.map(manga => `
-            <div class="manga-card" data-manga-id="${manga.id}">
-                <img src="${manga.imagem}" alt="${manga.titulo}" class="manga-image">
+        // Limpar resultados anteriores
+        searchResultsContainer.innerHTML = '';
+
+        const resultsHTML = mangas.map(manga => {
+            const isDeleted = deletedMangas.includes(manga.id);
+            const imageUrl = manga.imagem ? 
+                (manga.imagem.startsWith('http') ? manga.imagem : 
+                 manga.imagem.startsWith('/img/') ? `http://localhost:3001${manga.imagem}` :
+                 manga.imagem.startsWith('../img/') ? `http://localhost:3001/img/${manga.imagem.split('/').pop()}` :
+                 `http://localhost:3001/img/${manga.imagem}`) : 
+                'http://localhost:3001/img/default-manga.png';
+            
+            return `
+            <div class="manga-card ${isDeleted ? 'deleted' : ''}" data-manga-id="${manga.id}">
+                <img src="${imageUrl}" alt="${manga.titulo}" class="manga-image" onerror="this.src='http://localhost:3001/img/default-manga.png'">
                 <div class="manga-info">
                     <h3>${manga.titulo}</h3>
                     <p class="author">Autor: ${manga.autor}</p>
@@ -656,9 +896,20 @@
                         ${manga.generos.map(genero => `<span class="genre-tag">${genero}</span>`).join('')}
                     </div>
                     <p class="sinopse">${manga.sinopse}</p>
+                    ${isDeleted ? `
+                    <div class="history-actions">
+                        <button class="btn-delete-history" onclick="handleHistoryAction(${manga.id}, 'delete')">
+                            <i class="fas fa-trash"></i> Deletar Histórico
+                        </button>
+                        <button class="btn-restore" onclick="handleHistoryAction(${manga.id}, 'restore')">
+                            <i class="fas fa-check"></i> Manter Mangá
+                        </button>
                 </div>
+                    ` : ''}
             </div>
-        `).join('');
+            </div>
+            `;
+        }).join('');
 
         searchResultsContainer.innerHTML = resultsHTML;
         searchResultsContainer.classList.add('active');
@@ -666,7 +917,11 @@
         // Adicionar evento de clique nos cards
         const mangaCards = searchResultsContainer.querySelectorAll('.manga-card');
         mangaCards.forEach(card => {
-            card.addEventListener('click', () => {
+            card.addEventListener('click', (e) => {
+                // Não abrir detalhes se clicou em um botão de ação
+                if (e.target.closest('.history-actions')) {
+                    return;
+                }
                 const mangaId = card.dataset.mangaId;
                 if (mangaId) {
                     loadMangaDetails(mangaId);
@@ -675,213 +930,384 @@
         });
     }
 
-    // Adicionar evento de pesquisa
-    document.addEventListener('DOMContentLoaded', () => {
-        const searchForm = document.getElementById('search-form');
-        const searchInput = document.getElementById('search-input');
-        const searchResults = document.getElementById('search-results');
+    // Função para lidar com ações do histórico
+    window.handleHistoryAction = async function(mangaId, action) {
+        if (action === 'delete') {
+            const confirmDelete = confirm('Tem certeza que deseja deletar permanentemente este mangá do histórico? Esta ação não pode ser desfeita.');
+            if (confirmDelete) {
+                try {
+                    // Remover do localStorage de mangás deletados
+                    const deletedMangas = JSON.parse(localStorage.getItem('deletedMangas') || '[]');
+                    const updatedDeletedMangas = deletedMangas.filter(id => id !== mangaId);
+                    localStorage.setItem('deletedMangas', JSON.stringify(updatedDeletedMangas));
 
-        if (searchForm && searchInput) {
-            let searchTimeout;
+                    // Remover do localStorage de mangás mantidos se estiver lá
+                    const keptMangas = JSON.parse(localStorage.getItem('keptMangas') || '[]');
+                    const updatedKeptMangas = keptMangas.filter(m => m.id !== mangaId);
+                    localStorage.setItem('keptMangas', JSON.stringify(updatedKeptMangas));
 
-            searchForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const query = searchInput.value.trim();
-                if (query) {
-                    searchManga(query);
+                    // Remover o card da pesquisa
+                    const mangaCard = document.querySelector(`.manga-card[data-manga-id="${mangaId}"]`);
+                    if (mangaCard) {
+                        mangaCard.remove();
+                    }
+
+                    // Mostrar notificação de sucesso
+                    showNotification('Mangá removido permanentemente do histórico', 'success');
+                } catch (error) {
+                    console.error('Erro ao deletar mangá do histórico:', error);
+                    showNotification('Erro ao deletar mangá do histórico', 'error');
                 }
-            });
-
-            // Pesquisa em tempo real enquanto o usuário digita
-            searchInput.addEventListener('input', (e) => {
-                const query = e.target.value.trim();
-                clearTimeout(searchTimeout);
-                
-                if (query.length >= 2) {
-                    searchTimeout = setTimeout(() => {
-                        searchManga(query);
-                    }, 300);
-                } else {
-                    searchResults.classList.remove('active');
-                }
-            });
-
-            // Fechar resultados ao clicar fora
-            document.addEventListener('click', (e) => {
-                if (!searchForm.contains(e.target) && !searchResults.contains(e.target)) {
-                    searchResults.classList.remove('active');
-                }
-            });
-
-            // Manter resultados visíveis ao passar o mouse
-            searchResults.addEventListener('mouseenter', () => {
-                searchResults.classList.add('active');
-            });
-
-            searchResults.addEventListener('mouseleave', () => {
-                if (!searchInput.value.trim()) {
-                    searchResults.classList.remove('active');
-                }
-            });
-        }
-    });
-
-    // Função para carregar os detalhes do mangá no modal
-    async function loadMangaDetails(mangaId) {
-        try {
-            // Buscar informações do mangá
-            const mangaResponse = await fetch(`http://localhost:3001/api/mangas/${mangaId}`);
-            if (!mangaResponse.ok) {
-                throw new Error('Erro ao buscar detalhes do mangá');
             }
-            const manga = await mangaResponse.json();
+        } else if (action === 'restore') {
+            try {
+                // Buscar os detalhes do mangá
+                const response = await fetch(`http://localhost:3001/api/mangas/${mangaId}`);
+                const manga = await response.json();
 
-            // Atualizar o conteúdo do modal
-            const modal = document.getElementById('mangaDetailsModal');
-            const modalImage = modal.querySelector('.manga-detail-image');
-            const modalTitle = modal.querySelector('.manga-info-container h3');
-            const modalAuthor = modal.querySelector('.manga-info-container .author');
-            const modalStatus = modal.querySelector('.manga-info-container .status');
-            const modalRating = modal.querySelector('.manga-info-container .rating');
-            const modalChapters = modal.querySelector('.manga-info-container .chapters');
-            const modalGenres = modal.querySelector('.manga-info-container .genres');
-            const modalSinopse = modal.querySelector('.manga-info-container .sinopse');
-            const modalStatusBadge = modal.querySelector('.manga-status-badge');
+                // Remover do localStorage de mangás deletados
+                const deletedMangas = JSON.parse(localStorage.getItem('deletedMangas') || '[]');
+                const updatedDeletedMangas = deletedMangas.filter(id => id !== manga.id);
+                localStorage.setItem('deletedMangas', JSON.stringify(updatedDeletedMangas));
 
-            // Encontrar o card do mangá clicado
-            const mangaCard = document.querySelector(`.card[data-manga-id="${mangaId}"]`);
-            const cardImage = mangaCard ? mangaCard.querySelector('img') : null;
+                // Atualizar a seção de últimas atualizações
+                const updatesContainer = document.querySelector('.carousel-track');
+                if (updatesContainer) {
+                    // Verificar se o mangá já existe no container
+                    const existingCard = updatesContainer.querySelector(`.update-card[data-manga-id="${manga.id}"]`);
+                    if (!existingCard) {
+                        const card = document.createElement('div');
+                        card.className = 'card update-card';
+                        card.dataset.mangaId = manga.id;
+                        card.innerHTML = `
+                            <img src="${manga.imagem}" alt="${manga.titulo}" onerror="this.src='http://localhost:3001/img/default-manga.png'">
+                            <div class="card-info">
+                                <h3>${manga.titulo}</h3>
+                                <p><span class="star">★</span> ${manga.nota}</p>
+                                <div class="update-info">
+                                    <span class="update-time">Agora mesmo</span>
+                                    <span class="update-views"><i class="fas fa-eye"></i> 0</span>
+                                </div>
+                            </div>
+                            <span class="badge ${manga.status.toLowerCase().includes('lançamento') ? 'lancamento' : 'andamento'}">${manga.status}</span>
+                            <div class="card-actions">
+                                <button class="btn-delete">
+                                    <i class="fas fa-trash"></i> Deletar
+                                </button>
+                                <button class="btn-keep">
+                                    <i class="fas fa-check"></i> Manter
+                                </button>
+                            </div>
+                        `;
 
-            // Atualizar os elementos do modal
-            if (cardImage) {
-                modalImage.src = cardImage.src;
-            } else {
-                modalImage.src = manga.imagem;
-            }
-            modalImage.alt = manga.titulo;
-            modalTitle.textContent = manga.titulo;
-            modalAuthor.textContent = `Autor: ${manga.autor}`;
-            modalStatus.textContent = `Status: ${manga.status}`;
-            modalRating.innerHTML = `<span class="star">★</span> ${manga.nota}/10`;
-            modalChapters.textContent = `Capítulos: ${manga.capitulos}`;
-            modalSinopse.textContent = manga.sinopse;
-            modalStatusBadge.textContent = manga.status.toUpperCase();
+                        // Adicionar event listeners aos botões
+                        const deleteButton = card.querySelector('.btn-delete');
+                        const keepButton = card.querySelector('.btn-keep');
 
-            // Atualizar os gêneros
-            modalGenres.innerHTML = manga.generos.map(genero => 
-                `<span class="genre-tag">${genero}</span>`
-            ).join('');
+                        deleteButton.addEventListener('click', () => handleMangaAction(manga.id, 'delete'));
+                        keepButton.addEventListener('click', () => handleMangaAction(manga.id, 'keep'));
 
-            // Armazenar o ID do mangá atual no modal
-            modal.dataset.currentMangaId = mangaId;
+                        // Adicionar o card no início do carrossel
+                        updatesContainer.insertBefore(card, updatesContainer.firstChild);
+                    }
+                }
 
-            // Mostrar o modal usando Bootstrap
-            const modalInstance = new bootstrap.Modal(modal);
-            modalInstance.show();
+                // Remover o card da pesquisa
+                const mangaCard = document.querySelector(`.manga-card[data-manga-id="${mangaId}"]`);
+                if (mangaCard) {
+                    mangaCard.remove();
+                }
+
+                // Mostrar notificação de sucesso
+                showNotification('Mangá restaurado com sucesso!', 'success');
         } catch (error) {
-            console.error('Erro ao carregar detalhes do mangá:', error);
-            alert('Erro ao carregar detalhes do mangá. Tente novamente.');
+                console.error('Erro ao restaurar mangá:', error);
+                showNotification('Erro ao restaurar mangá', 'error');
+            }
         }
+    };
+
+    // Função auxiliar para mostrar notificações
+    function showNotification(message, type) {
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.textContent = message;
+
+        document.body.appendChild(notification);
+        setTimeout(() => notification.classList.add('show'), 100);
+
+        setTimeout(() => {
+            notification.classList.remove('show');
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
     }
 
-    // Função para marcar mangá como em uso
-    async function useManga(mangaId) {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            alert('Você precisa estar logado para usar um mangá.');
-            return;
+    // Adicionar estilos CSS para os novos elementos
+    const searchStyles = document.createElement('style');
+    searchStyles.textContent += `
+        /* Ajuste da cor de fundo principal */
+        body {
+            background-color: #232342 !important;
         }
 
-        const confirmacao = confirm('Você está prestes a marcar este mangá como em uso. Outros usuários não poderão usá-lo enquanto você estiver lendo. Deseja continuar?');
-        if (!confirmacao) return;
-
-        try {
-            const response = await fetch(`http://localhost:3001/api/manga/${mangaId}/use`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-
-            if (response.ok) {
-                alert('Mangá marcado como em uso com sucesso! Você pode começar a leitura.');
-                loadMangaDetails(mangaId); // Recarregar detalhes para atualizar o status
-            } else {
-                const error = await response.json();
-                alert(error.message || 'Erro ao marcar mangá como em uso.');
-            }
-        } catch (error) {
-            console.error('Erro ao marcar mangá como em uso:', error);
-            alert('Erro ao marcar mangá como em uso. Tente novamente.');
-        }
-    }
-
-    // Função para marcar mangá como disponível
-    async function releaseManga(mangaId) {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            alert('Você precisa estar logado para marcar um mangá como disponível.');
-            return;
+        .navbar {
+            background-color: #232342 !important;
         }
 
-        const confirmacao = confirm('Você está prestes a marcar este mangá como disponível. Outros usuários poderão usá-lo. Deseja continuar?');
-        if (!confirmacao) return;
-
-        try {
-            const response = await fetch(`http://localhost:3001/api/manga/${mangaId}/available`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-
-            if (response.ok) {
-                alert('Mangá marcado como disponível com sucesso! Outros usuários agora podem usá-lo.');
-                loadMangaDetails(mangaId); // Recarregar detalhes para atualizar o status
-            } else {
-                const error = await response.json();
-                alert(error.message || 'Erro ao marcar mangá como disponível.');
-            }
-        } catch (error) {
-            console.error('Erro ao marcar mangá como disponível:', error);
-            alert('Erro ao marcar mangá como disponível. Tente novamente.');
-        }
-    }
-
-    // Função para devolver mangá
-    async function returnManga(mangaId) {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            alert('Você precisa estar logado para devolver um mangá.');
-            return;
+        .section {
+            background-color: #232342 !important;
         }
 
-        const confirmacao = confirm('Você está prestes a devolver este mangá. Deseja confirmar a devolução?');
-        if (!confirmacao) return;
-
-        try {
-            const response = await fetch(`http://localhost:3001/api/manga/${mangaId}/return`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-
-            if (response.ok) {
-                alert('Mangá devolvido com sucesso! Obrigado por utilizar nossa biblioteca.');
-                loadMangaDetails(mangaId); // Recarregar detalhes para atualizar o status
-            } else {
-                const error = await response.json();
-                alert(error.message || 'Erro ao devolver mangá.');
-            }
-        } catch (error) {
-            console.error('Erro ao devolver mangá:', error);
-            alert('Erro ao devolver mangá. Tente novamente.');
+        .card {
+            background-color: #2a2a4a !important;
         }
-    }
+
+        .modal-content {
+            background-color: #2a2a4a !important;
+            color: #ffffff;
+        }
+
+        .modal-header {
+            border-bottom: 1px solid #35355a;
+        }
+
+        .modal-footer {
+            border-top: 1px solid #35355a;
+        }
+
+        /* Ajuste das cores dos elementos */
+        .search-container {
+            background-color: #2a2a4a !important;
+        }
+
+        .search-results {
+            background-color: #2a2a4a !important;
+        }
+
+        .manga-card {
+            background-color: #2a2a4a !important;
+        }
+
+        /* Ajuste das cores dos botões */
+        .btn-primary {
+            background-color: #18f9c4 !important;
+            color: #232342 !important;
+        }
+
+        .btn-primary:hover {
+            background-color: #15e0b0 !important;
+        }
+
+        /* Ajuste das cores dos inputs */
+        input, select, textarea {
+            background-color: #35355a !important;
+            color: #ffffff !important;
+            border: 1px solid #40406a !important;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            background-color: #35355a !important;
+            border-color: #18f9c4 !important;
+        }
+
+        /* Ajuste das cores dos cards */
+        .card-info {
+            background-color: rgba(42, 42, 74, 0.9) !important;
+        }
+
+        .card-actions {
+            background-color: rgba(42, 42, 74, 0.95) !important;
+        }
+
+        /* Ajuste das cores dos badges */
+        .badge {
+            background-color: #35355a !important;
+        }
+
+        .badge.lancamento {
+            background-color: #18f9c4 !important;
+            color: #232342 !important;
+        }
+
+        .badge.andamento {
+            background-color: #ff9f43 !important;
+            color: #232342 !important;
+        }
+
+        /* Estilo para o ícone X */
+        .btn-close {
+            color: #ffffff !important;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.9);
+            opacity: 1 !important;
+            transition: all 0.3s ease;
+            filter: brightness(2) contrast(1.5);
+            font-size: 2rem;
+            font-weight: 400;
+            position: relative;
+            z-index: 1000;
+        }
+
+        .btn-close:hover {
+            color: #ffffff !important;
+            transform: scale(1.2);
+            text-shadow: 0 0 15px rgba(255, 255, 255, 1);
+            filter: brightness(2.5) contrast(1.8);
+        }
+
+        .btn-close:focus {
+            box-shadow: none;
+            outline: none;
+        }
+
+        /* Ajuste para o modal */
+        .modal-header .btn-close {
+            margin: -0.5rem -0.5rem -0.5rem auto;
+            padding: 0.5rem;
+            background: transparent;
+            border: 0;
+            border-radius: 0.375rem;
+            line-height: 1;
+        }
+
+        /* Ajuste para o ícone X em diferentes contextos */
+        .modal .btn-close,
+        .alert .btn-close,
+        .toast .btn-close {
+            color: #ffffff !important;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.9);
+            filter: brightness(2) contrast(1.5);
+        }
+
+        /* Efeito de brilho ao redor do X */
+        .btn-close::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 40px;
+            height: 40px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 70%);
+            border-radius: 50%;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: -1;
+        }
+
+        .btn-close:hover::before {
+            opacity: 1;
+        }
+
+        /* Estilos para os botões de ação */
+        .btn-delete {
+            background-color: #dc3545 !important;
+            color: white !important;
+            border: none !important;
+            padding: 8px 16px !important;
+            border-radius: 4px !important;
+            cursor: pointer !important;
+            transition: all 0.3s ease !important;
+        }
+
+        .btn-delete:hover {
+            background-color: #c82333 !important;
+            transform: translateY(-2px) !important;
+        }
+
+        .btn-keep {
+            background-color: #28a745 !important;
+            color: white !important;
+            border: none !important;
+            padding: 8px 16px !important;
+            border-radius: 4px !important;
+            cursor: pointer !important;
+            transition: all 0.3s ease !important;
+        }
+
+        .btn-keep:hover {
+            background-color: #218838 !important;
+            transform: translateY(-2px) !important;
+        }
+
+        .btn-keep:disabled {
+            background-color: #6c757d !important;
+            cursor: not-allowed !important;
+            transform: none !important;
+        }
+
+        /* Estilos para o container de ações */
+        .card-actions {
+            display: flex !important;
+            gap: 8px !important;
+            justify-content: center !important;
+            align-items: center !important;
+            padding: 10px !important;
+            background-color: rgba(42, 42, 74, 0.95) !important;
+            position: absolute !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            opacity: 0 !important;
+            transition: opacity 0.3s ease !important;
+        }
+
+        .card:hover .card-actions {
+            opacity: 1 !important;
+        }
+
+        /* Estilos para os botões de ação */
+        .btn-delete, .btn-keep {
+            flex: 1 !important;
+            max-width: 120px !important;
+            text-align: center !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+        }
+
+        .btn-delete {
+            background-color: #dc3545 !important;
+            color: white !important;
+            border: none !important;
+            padding: 8px 16px !important;
+            border-radius: 4px !important;
+            cursor: pointer !important;
+            transition: all 0.3s ease !important;
+        }
+
+        .btn-delete:hover {
+            background-color: #c82333 !important;
+            transform: translateY(-2px) !important;
+        }
+
+        .btn-keep {
+            background-color: #28a745 !important;
+            color: white !important;
+            border: none !important;
+            padding: 8px 16px !important;
+            border-radius: 4px !important;
+            cursor: pointer !important;
+            transition: all 0.3s ease !important;
+        }
+
+        .btn-keep:hover {
+            background-color: #218838 !important;
+            transform: translateY(-2px) !important;
+        }
+
+        .btn-keep:disabled {
+            background-color: #6c757d !important;
+            cursor: not-allowed !important;
+            transform: none !important;
+        }
+
+        /* Ajuste para o card */
+        .card {
+            position: relative !important;
+            overflow: hidden !important;
+        }
+    `;
+    document.head.appendChild(searchStyles);
 
     // Adicionar event listeners quando o DOM estiver carregado
     document.addEventListener('DOMContentLoaded', function() {
@@ -1023,24 +1449,50 @@
             const updatesContainer = document.querySelector('.carousel-track');
             if (!updatesContainer) return;
 
+            // Verificar se o mangá já existe no container
+            const existingCard = updatesContainer.querySelector(`.update-card[data-manga-id="${manga.id}"]`);
+            if (existingCard) {
+                return; // Se já existe, não adiciona novamente
+            }
+
             // Criar novo card
             const newCard = document.createElement('div');
-            newCard.className = 'update-card';
+            newCard.className = 'card update-card';
+            newCard.dataset.mangaId = manga.id;
             newCard.innerHTML = `
-                <img src="${manga.imagem}" alt="${manga.titulo}">
-                <div class="chapter-badge">Cap. ${manga.capitulos}</div>
+                <img src="${manga.imagem}" alt="${manga.titulo}" onerror="this.src='http://localhost:3001/img/default-manga.png'">
+                <div class="card-info">
+                    <h3>${manga.titulo}</h3>
+                    <p><span class="star">★</span> ${manga.nota}</p>
                 <div class="update-info">
                     <span class="update-time">Agora mesmo</span>
                     <span class="update-views"><i class="fas fa-eye"></i> 0</span>
+                    </div>
+                </div>
+                <span class="badge ${manga.status.toLowerCase().includes('lançamento') ? 'lancamento' : 'andamento'}">${manga.status}</span>
+                <div class="card-actions">
+                    <button class="btn-delete">
+                        <i class="fas fa-trash"></i> Deletar
+                    </button>
+                    <button class="btn-keep">
+                        <i class="fas fa-check"></i> Manter
+                    </button>
                 </div>
             `;
+
+            // Adicionar event listeners aos botões
+            const deleteButton = card.querySelector('.btn-delete');
+            const keepButton = card.querySelector('.btn-keep');
+
+            deleteButton.addEventListener('click', () => handleMangaAction(manga.id, 'delete'));
+            keepButton.addEventListener('click', () => handleMangaAction(manga.id, 'keep'));
 
             // Adicionar o novo card no início do carrossel
             updatesContainer.insertBefore(newCard, updatesContainer.firstChild);
 
-            // Remover o último card se houver mais de 10 cards
+            // Remover o último card se houver mais de 6 cards
             const cards = updatesContainer.querySelectorAll('.update-card');
-            if (cards.length > 10) {
+            if (cards.length > 6) {
                 updatesContainer.removeChild(cards[cards.length - 1]);
             }
         },
@@ -1063,6 +1515,528 @@
     // Inicializar doação quando o DOM estiver pronto
     document.addEventListener('DOMContentLoaded', () => {
         donation.init();
+    });
+
+    // Função para carregar as últimas atualizações
+    async function loadLatestUpdates() {
+        try {
+            const response = await fetch('http://localhost:3001/api/mangas/search');
+            const mangas = await response.json();
+            
+            // Ordenar por ID (mais recente primeiro)
+            mangas.sort((a, b) => b.id - a.id);
+            
+            // Carregar mangás deletados do localStorage
+            const deletedMangas = JSON.parse(localStorage.getItem('deletedMangas') || '[]');
+            
+            // Filtrar os mangás deletados
+            const filteredMangas = mangas.filter(manga => !deletedMangas.includes(manga.id));
+            
+            // Pegar os 6 mais recentes dos mangás não deletados
+            const latestMangas = filteredMangas.slice(0, 6);
+            
+            const updatesContainer = document.querySelector('.carousel-track');
+            if (!updatesContainer) return;
+            
+            // Limpar o container
+            updatesContainer.innerHTML = '';
+            
+            // Carregar mangás mantidos do localStorage
+            const keptMangas = JSON.parse(localStorage.getItem('keptMangas') || '[]');
+            
+            // Adicionar cada mangá
+            latestMangas.forEach(manga => {
+                const isKept = keptMangas.some(keptManga => keptManga.id === manga.id);
+                const imageUrl = manga.imagem ? 
+                    (manga.imagem.startsWith('http') ? manga.imagem : 
+                     manga.imagem.startsWith('/img/') ? `http://localhost:3001${manga.imagem}` :
+                     manga.imagem.startsWith('../img/') ? `http://localhost:3001/img/${manga.imagem.split('/').pop()}` :
+                     `http://localhost:3001/img/${manga.imagem}`) : 
+                    'http://localhost:3001/img/default-manga.png';
+                
+                const card = document.createElement('div');
+                card.className = `card update-card ${isKept ? 'kept' : ''}`;
+                card.dataset.mangaId = manga.id;
+                card.innerHTML = `
+                    <div class="card-image">
+                        <img src="${imageUrl}" alt="${manga.titulo}" onerror="this.src='http://localhost:3001/img/default-manga.png'">
+                    </div>
+                    <div class="card-info">
+                        <h3>${manga.titulo}</h3>
+                        <p><span class="star">★</span> ${manga.nota}</p>
+                        <div class="update-info">
+                            <span class="update-time">Agora mesmo</span>
+                            <span class="update-views"><i class="fas fa-eye"></i> 0</span>
+                        </div>
+                    </div>
+                    <span class="badge ${manga.status.toLowerCase().includes('lançamento') ? 'lancamento' : 'andamento'}">${manga.status}</span>
+                    <div class="card-actions">
+                        <button class="btn-delete">
+                            <i class="fas fa-trash"></i> Deletar
+                        </button>
+                        <button class="btn-keep" ${isKept ? 'disabled' : ''}>
+                            <i class="fas fa-check"></i> ${isKept ? 'Mantido' : 'Manter'}
+                        </button>
+                    </div>
+                `;
+
+                // Adicionar event listeners aos botões
+                const deleteButton = card.querySelector('.btn-delete');
+                const keepButton = card.querySelector('.btn-keep');
+
+                deleteButton.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    handleMangaAction(manga.id, 'delete');
+                });
+                
+                keepButton.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    handleMangaAction(manga.id, 'keep');
+                });
+
+                // Adicionar evento de clique no card para abrir detalhes
+                card.addEventListener('click', () => {
+                    loadMangaDetails(manga.id);
+                });
+
+                updatesContainer.appendChild(card);
+            });
+
+            // Adicionar botão "Mais Mangá"
+            const moreMangaButton = document.createElement('div');
+            moreMangaButton.className = 'more-manga-button';
+            moreMangaButton.innerHTML = `
+                <button class="btn-more-manga">
+                    <i class="fas fa-plus"></i>
+                    Mais Mangá
+                </button>
+            `;
+            updatesContainer.appendChild(moreMangaButton);
+
+            // Adicionar estilos para o botão
+            const style = document.createElement('style');
+            style.textContent = `
+                .more-manga-button {
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    padding: 20px;
+                    width: 100%;
+                }
+
+                .btn-more-manga {
+                    background: #18f9c4;
+                    color: #10101a;
+                    border: none;
+                    padding: 12px 24px;
+                    border-radius: 8px;
+                    font-size: 1.1rem;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    transition: all 0.3s ease;
+                    box-shadow: 0 4px 12px rgba(24, 249, 196, 0.2);
+                }
+
+                .btn-more-manga:hover {
+                    background: #15e0b0;
+                    transform: translateY(-2px);
+                    box-shadow: 0 6px 16px rgba(24, 249, 196, 0.3);
+                }
+
+                .btn-more-manga i {
+                    font-size: 1.2rem;
+                }
+
+                .btn-more-manga.requires-auth {
+                    opacity: 0.7;
+                    cursor: not-allowed;
+                }
+            `;
+            document.head.appendChild(style);
+
+            // Adicionar evento de clique ao botão
+            const btnMoreManga = moreMangaButton.querySelector('.btn-more-manga');
+            btnMoreManga.addEventListener('click', () => {
+                // Aqui você pode adicionar a lógica para carregar mais mangás
+                // Por exemplo, carregar os próximos 6 mangás
+                const nextMangas = filteredMangas.slice(6, 12);
+                if (nextMangas.length > 0) {
+                    nextMangas.forEach(manga => {
+                        // Criar e adicionar novos cards
+                        const card = createMangaCard(manga);
+                        updatesContainer.insertBefore(card, moreMangaButton);
+                    });
+                }
+            });
+
+        } catch (error) {
+            console.error('Erro ao carregar últimas atualizações:', error);
+        }
+    }
+
+    // Função auxiliar para criar cards de mangá
+    function createMangaCard(manga) {
+        const isKept = JSON.parse(localStorage.getItem('keptMangas') || '[]')
+            .some(keptManga => keptManga.id === manga.id);
+        
+        const imageUrl = manga.imagem ? 
+            (manga.imagem.startsWith('http') ? manga.imagem : 
+             manga.imagem.startsWith('/img/') ? `http://localhost:3001${manga.imagem}` :
+             manga.imagem.startsWith('../img/') ? `http://localhost:3001/img/${manga.imagem.split('/').pop()}` :
+             `http://localhost:3001/img/${manga.imagem}`) : 
+            'http://localhost:3001/img/default-manga.png';
+        
+        const card = document.createElement('div');
+        card.className = `card update-card ${isKept ? 'kept' : ''}`;
+        card.dataset.mangaId = manga.id;
+        card.innerHTML = `
+            <div class="card-image">
+                <img src="${imageUrl}" alt="${manga.titulo}" onerror="this.src='http://localhost:3001/img/default-manga.png'">
+            </div>
+            <div class="card-info">
+                <h3>${manga.titulo}</h3>
+                <p><span class="star">★</span> ${manga.nota}</p>
+                <div class="update-info">
+                    <span class="update-time">Agora mesmo</span>
+                    <span class="update-views"><i class="fas fa-eye"></i> 0</span>
+                </div>
+            </div>
+            <span class="badge ${manga.status.toLowerCase().includes('lançamento') ? 'lancamento' : 'andamento'}">${manga.status}</span>
+            <div class="card-actions">
+                <button class="btn-delete">
+                    <i class="fas fa-trash"></i> Deletar
+                </button>
+                <button class="btn-keep" ${isKept ? 'disabled' : ''}>
+                    <i class="fas fa-check"></i> ${isKept ? 'Mantido' : 'Manter'}
+                </button>
+            </div>
+        `;
+
+        // Adicionar event listeners aos botões
+        const deleteButton = card.querySelector('.btn-delete');
+        const keepButton = card.querySelector('.btn-keep');
+
+        deleteButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            handleMangaAction(manga.id, 'delete');
+        });
+        
+        keepButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            handleMangaAction(manga.id, 'keep');
+        });
+
+        // Adicionar evento de clique no card para abrir detalhes
+        card.addEventListener('click', () => {
+            loadMangaDetails(manga.id);
+        });
+
+        return card;
+    }
+
+    // Função para lidar com as ações de deletar ou manter
+    window.handleMangaAction = async function(mangaId, action) {
+        const card = document.querySelector(`.update-card[data-manga-id="${mangaId}"]`);
+        if (!card) return;
+
+        if (action === 'delete') {
+            const confirmDelete = confirm('Tem certeza que deseja deletar este mangá das últimas atualizações?');
+            if (confirmDelete) {
+                // Remover o card do DOM
+                card.remove();
+                
+                // Adicionar ao localStorage de mangás deletados
+                const deletedMangas = JSON.parse(localStorage.getItem('deletedMangas') || '[]');
+                if (!deletedMangas.includes(mangaId)) {
+                    deletedMangas.push(mangaId);
+                    localStorage.setItem('deletedMangas', JSON.stringify(deletedMangas));
+                }
+                
+                // Remover do localStorage de mangás mantidos se estiver lá
+                const keptMangas = JSON.parse(localStorage.getItem('keptMangas') || '[]');
+                const updatedKeptMangas = keptMangas.filter(m => m.id !== mangaId);
+                localStorage.setItem('keptMangas', JSON.stringify(updatedKeptMangas));
+
+                // Remover o card da seção de destaque se existir
+                const featuredCard = document.querySelector(`.section:nth-child(3) .card[data-manga-id="${mangaId}"]`);
+                if (featuredCard) {
+                    featuredCard.remove();
+                }
+                
+                // Recarregar mangás em destaque para garantir que está tudo atualizado
+                loadFeaturedMangas();
+            }
+        } else if (action === 'keep') {
+            try {
+                // Buscar os detalhes do mangá
+                const response = await fetch(`http://localhost:3001/api/mangas/${mangaId}`);
+                const manga = await response.json();
+
+                // Salvar no localStorage
+                const keptMangas = JSON.parse(localStorage.getItem('keptMangas') || '[]');
+                if (!keptMangas.some(m => m.id === manga.id)) {
+                    keptMangas.push(manga);
+                    localStorage.setItem('keptMangas', JSON.stringify(keptMangas));
+                }
+
+                // Remover do localStorage de mangás deletados se estiver lá
+                const deletedMangas = JSON.parse(localStorage.getItem('deletedMangas') || '[]');
+                const updatedDeletedMangas = deletedMangas.filter(id => id !== manga.id);
+                localStorage.setItem('deletedMangas', JSON.stringify(updatedDeletedMangas));
+
+                // Encontrar a seção de Mangás em Destaque
+                const featuredSection = document.querySelector('.section:nth-child(3)');
+                if (!featuredSection) {
+                    console.error('Seção de Mangás em Destaque não encontrada');
+                    return;
+                }
+
+                const featuredContainer = featuredSection.querySelector('.cards');
+                if (!featuredContainer) {
+                    console.error('Container de cards não encontrado');
+                    return;
+                }
+
+                // Verificar se o mangá já está na seção de destaque
+                const existingCard = featuredContainer.querySelector(`.card[data-manga-id="${manga.id}"]`);
+                if (!existingCard) {
+                    // Criar o card para a seção de destaque
+                    const featuredCard = document.createElement('div');
+                    featuredCard.className = 'card';
+                    featuredCard.dataset.mangaId = manga.id;
+                    featuredCard.innerHTML = `
+                        <img src="${manga.imagem}" alt="${manga.titulo}">
+                        <div class="card-info">
+                            <h3>${manga.titulo}</h3>
+                            <p><span class="star">★</span> ${manga.nota}</p>
+                        </div>
+                        <span class="badge ${manga.status.toLowerCase().includes('lançamento') ? 'lancamento' : 'andamento'}">${manga.status}</span>
+                    `;
+
+                    // Adicionar evento de clique no card
+                    featuredCard.addEventListener('click', () => {
+                        loadMangaDetails(manga.id);
+                    });
+
+                    // Adicionar o card na seção de destaque
+                    featuredContainer.insertBefore(featuredCard, featuredContainer.firstChild);
+                }
+
+                // Marcar o mangá como mantido na seção de últimas atualizações
+                card.classList.add('kept');
+                const keepButton = card.querySelector('.btn-keep');
+                if (keepButton) {
+                    keepButton.innerHTML = '<i class="fas fa-check"></i> Mantido';
+                    keepButton.disabled = true;
+                }
+
+                // Mostrar notificação de sucesso
+                const notification = document.createElement('div');
+                notification.className = 'notification success';
+                notification.textContent = 'Mangá movido para a seção de destaque!';
+                document.body.appendChild(notification);
+                setTimeout(() => notification.classList.add('show'), 100);
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                    setTimeout(() => notification.remove(), 300);
+                }, 3000);
+
+            } catch (error) {
+                console.error('Erro ao mover mangá para destaque:', error);
+                // Mostrar notificação de erro
+                const notification = document.createElement('div');
+                notification.className = 'notification error';
+                notification.textContent = 'Erro ao mover mangá para destaque. Tente novamente.';
+                document.body.appendChild(notification);
+                setTimeout(() => notification.classList.add('show'), 100);
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                    setTimeout(() => notification.remove(), 300);
+                }, 3000);
+            }
+        }
+    };
+
+    // Função para carregar mangás em destaque
+    async function loadFeaturedMangas() {
+        try {
+            // Carregar mangás mantidos do localStorage
+            const keptMangas = JSON.parse(localStorage.getItem('keptMangas') || '[]');
+            
+            // Encontrar a seção de Mangás em Destaque
+            const featuredSection = document.querySelector('.section:nth-child(3)');
+            if (!featuredSection) {
+                console.error('Seção de Mangás em Destaque não encontrada');
+                return;
+            }
+
+            const featuredContainer = featuredSection.querySelector('.cards');
+            if (!featuredContainer) {
+                console.error('Container de cards não encontrado');
+                return;
+            }
+
+            // Limpar o container de destaque
+            featuredContainer.innerHTML = '';
+
+            // Buscar todos os mangás da API
+            const response = await fetch('http://localhost:3001/api/mangas/search');
+            const allMangas = await response.json();
+
+            // Adicionar os mangás mantidos
+            keptMangas.forEach(keptManga => {
+                // Encontrar o mangá atualizado na lista completa
+                const updatedManga = allMangas.find(m => m.id === keptManga.id) || keptManga;
+                const imageUrl = updatedManga.imagem ? 
+                    (updatedManga.imagem.startsWith('http') ? updatedManga.imagem : 
+                     updatedManga.imagem.startsWith('/img/') ? `http://localhost:3001${updatedManga.imagem}` :
+                     updatedManga.imagem.startsWith('../img/') ? `http://localhost:3001/img/${updatedManga.imagem.split('/').pop()}` :
+                     `http://localhost:3001/img/${updatedManga.imagem}`) : 
+                    'http://localhost:3001/img/default-manga.png';
+                
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.dataset.mangaId = updatedManga.id;
+                card.innerHTML = `
+                    <img src="${imageUrl}" alt="${updatedManga.titulo}" onerror="this.src='http://localhost:3001/img/default-manga.png'">
+                    <div class="card-info">
+                        <h3>${updatedManga.titulo}</h3>
+                        <p><span class="star">★</span> ${updatedManga.nota}</p>
+                    </div>
+                    <span class="badge ${updatedManga.status.toLowerCase().includes('lançamento') ? 'lancamento' : 'andamento'}">${updatedManga.status}</span>
+                `;
+
+                // Adicionar evento de clique no card
+                card.addEventListener('click', () => {
+                    loadMangaDetails(updatedManga.id);
+                });
+
+                featuredContainer.appendChild(card);
+            });
+
+            // Se não houver mangás mantidos, adicionar o Pokémon como padrão
+            if (featuredContainer.children.length === 0) {
+                const pokemon = allMangas.find(manga => manga.titulo.trim() === 'Pokémon');
+                if (pokemon) {
+                    const imageUrl = pokemon.imagem ? 
+                        (pokemon.imagem.startsWith('http') ? pokemon.imagem : 
+                         pokemon.imagem.startsWith('/img/') ? `http://localhost:3001${pokemon.imagem}` :
+                         pokemon.imagem.startsWith('../img/') ? `http://localhost:3001/img/${pokemon.imagem.split('/').pop()}` :
+                         `http://localhost:3001/img/${pokemon.imagem}`) : 
+                        'http://localhost:3001/img/default-manga.png';
+                    
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.dataset.mangaId = pokemon.id;
+                    card.innerHTML = `
+                        <img src="${imageUrl}" alt="${pokemon.titulo}" onerror="this.src='http://localhost:3001/img/default-manga.png'">
+                        <div class="card-info">
+                            <h3>${pokemon.titulo}</h3>
+                            <p><span class="star">★</span> ${pokemon.nota}</p>
+                        </div>
+                        <span class="badge ${pokemon.status.toLowerCase().includes('lançamento') ? 'lancamento' : 'andamento'}">${pokemon.status}</span>
+                    `;
+
+                    // Adicionar evento de clique no card
+                    card.addEventListener('click', () => {
+                        loadMangaDetails(pokemon.id);
+                    });
+
+                    featuredContainer.appendChild(card);
+                }
+            }
+        } catch (error) {
+            console.error('Erro ao carregar mangás em destaque:', error);
+        }
+    }
+
+    // Inicializar quando o DOM estiver pronto
+    document.addEventListener('DOMContentLoaded', () => {
+        auth.init();
+        carousel.init();
+        donation.init();
+        loadLatestUpdates(); // Carregar últimas atualizações
+        loadFeaturedMangas(); // Carregar mangás em destaque
+    });
+
+    // Função para verificar autenticação e bloquear interações
+    function checkAuthAndBlock() {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            // Bloquear apenas as interações
+            const elementsToBlock = [
+                '.card', // Cards de mangá
+                '.search-container', // Barra de pesquisa
+                '.btn-keep', // Botão manter
+                '.btn-delete', // Botão deletar
+                '.manga-actions', // Ações do mangá
+                '.carousel-control', // Controles do carrossel
+                '.view-all' // Links "Ver todos"
+            ];
+
+            elementsToBlock.forEach(selector => {
+                const elements = document.querySelectorAll(selector);
+                elements.forEach(element => {
+                    // Adicionar classe para estilo visual
+                    element.classList.add('requires-auth');
+                    
+                    // Adicionar evento de clique para mostrar modal de login
+                    element.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
+                        loginModal.show();
+                    });
+                });
+            });
+
+            // Adicionar estilos para elementos bloqueados
+            const style = document.createElement('style');
+            style.textContent = `
+                .requires-auth {
+                    position: relative;
+                    cursor: pointer;
+                }
+
+                .requires-auth::after {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: rgba(0, 0, 0, 0.1);
+                    opacity: 0;
+                    transition: opacity 0.3s ease;
+                }
+
+                .requires-auth:hover::after {
+                    opacity: 1;
+                }
+
+                .requires-auth:hover::before {
+                    content: 'Faça login para interagir';
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background: rgba(0, 0, 0, 0.8);
+                    color: white;
+                    padding: 8px 16px;
+                    border-radius: 4px;
+                    font-size: 14px;
+                    z-index: 1;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+    }
+
+    // Adicionar verificação de autenticação quando o DOM estiver carregado
+    document.addEventListener('DOMContentLoaded', () => {
+        checkAuthAndBlock();
     });
 
 })(); 

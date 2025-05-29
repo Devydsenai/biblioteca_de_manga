@@ -7,10 +7,25 @@ const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const app = express();
 
+// Configurações do Express para melhor gerenciamento de conexões
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(cors({
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+    maxAge: 86400 // 24 horas
+}));
+
+// Configuração de compressão para melhorar performance
+const compression = require('compression');
+app.use(compression());
+
 // Configuração do Multer para upload de arquivos
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        const uploadDir = path.join(__dirname, '..', 'Front-end', 'src', 'img', 'avatars');
+        const uploadDir = path.join(__dirname, '..', 'Front-end', 'src', 'img');
         // Criar diretório se não existir
         if (!fs.existsSync(uploadDir)) {
             fs.mkdirSync(uploadDir, { recursive: true });
@@ -40,8 +55,18 @@ const upload = multer({
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-app.use('/img', express.static(path.join(__dirname, '..', 'Front-end', 'src', 'img')));
+
+// Configuração para servir arquivos estáticos
+const staticOptions = {
+    setHeaders: (res, path, stat) => {
+        res.set('Access-Control-Allow-Origin', '*');
+        res.set('Cache-Control', 'public, max-age=31536000');
+        res.set('Connection', 'keep-alive');
+    }
+};
+
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'), staticOptions));
+app.use('/img', express.static(path.join(__dirname, '..', 'Front-end', 'src', 'img'), staticOptions));
 
 // Chave secreta para JWT
 const JWT_SECRET = 'sua_chave_secreta_muito_segura';
@@ -101,6 +126,17 @@ const readMangasFile = () => {
     }
 };
 
+// Função para salvar no arquivo mangas.json
+const saveMangasFile = (data) => {
+    try {
+        fs.writeFileSync(path.join(__dirname, 'mangas.json'), JSON.stringify(data, null, 2));
+        return true;
+    } catch (error) {
+        console.error('Erro ao salvar no arquivo mangas.json:', error);
+        return false;
+    }
+};
+
 // Função para ler o arquivo manga-status.json
 const readMangaStatusFile = () => {
     try {
@@ -123,22 +159,27 @@ const saveMangaStatusFile = (data) => {
     }
 };
 
-// Middleware para verificar token JWT
-const authenticateToken = (req, res, next) => {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
-
+// Middleware para verificar autenticação
+const checkAuth = (req, res, next) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    
     if (!token) {
-        return res.status(401).json({ message: 'Token não fornecido' });
+        return res.status(401).json({
+            error: true,
+            message: 'Acesso negado. Por favor, faça login para continuar.'
+        });
     }
 
-    jwt.verify(token, JWT_SECRET, (err, user) => {
-        if (err) {
-            return res.status(403).json({ message: 'Token inválido' });
-        }
-        req.user = user;
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || JWT_SECRET);
+        req.user = decoded;
         next();
-    });
+    } catch (error) {
+        return res.status(401).json({
+            error: true,
+            message: 'Token inválido ou expirado. Por favor, faça login novamente.'
+        });
+    }
 };
 
 // Rota de teste
@@ -346,7 +387,7 @@ app.post('/api/auth/login', async (req, res) => {
 });
 
 // Rota para obter dados do usuário (protegida)
-app.get('/api/auth/user', authenticateToken, (req, res) => {
+app.get('/api/auth/user', checkAuth, (req, res) => {
     const data = readUsersFile();
     const user = data.users.find(u => u.id === req.user.id);
 
@@ -363,7 +404,7 @@ app.get('/api/auth/user', authenticateToken, (req, res) => {
 });
 
 // Rota para atualizar dados do usuário (protegida)
-app.put('/api/auth/user', authenticateToken, async (req, res) => {
+app.put('/api/auth/user', checkAuth, async (req, res) => {
     const { nome, senha } = req.body;
     const data = readUsersFile();
     const userIndex = data.users.findIndex(u => u.id === req.user.id);
@@ -435,7 +476,7 @@ app.get('/api/manga/:id/status', (req, res) => {
 });
 
 // Rota para marcar mangá como em uso
-app.post('/api/manga/:id/use', authenticateToken, (req, res) => {
+app.post('/api/manga/:id/use', checkAuth, (req, res) => {
     const mangaId = parseInt(req.params.id);
     const userId = req.user.id;
     
@@ -464,7 +505,7 @@ app.post('/api/manga/:id/use', authenticateToken, (req, res) => {
 });
 
 // Rota para marcar mangá como disponível
-app.post('/api/manga/:id/available', authenticateToken, (req, res) => {
+app.post('/api/manga/:id/available', checkAuth, (req, res) => {
     const mangaId = parseInt(req.params.id);
     const userId = req.user.id;
     
@@ -510,7 +551,7 @@ app.get('/api/mangas/:id', (req, res) => {
 });
 
 // Rota para devolver mangá
-app.post('/api/manga/:id/return', authenticateToken, (req, res) => {
+app.post('/api/manga/:id/return', checkAuth, (req, res) => {
     const mangaId = parseInt(req.params.id);
     const userId = req.user.id;
     
@@ -558,9 +599,81 @@ app.post('/api/upload/avatar', upload.single('avatar'), (req, res) => {
     }
 });
 
+// Rota para doar mangá
+app.post('/api/mangas/donate', upload.single('imagem'), (req, res) => {
+    try {
+        const data = readMangasFile();
+        const novoManga = {
+            id: Date.now(),
+            titulo: req.body.titulo,
+            autor: req.body.autor,
+            status: req.body.status,
+            nota: parseFloat(req.body.nota),
+            capitulos: parseInt(req.body.capitulos),
+            generos: req.body.generos.split(',').map(g => g.trim()),
+            sinopse: req.body.sinopse,
+            imagem: req.file ? `/img/${req.file.filename}` : '/img/default-manga.png'
+        };
+
+        data.mangas.push(novoManga);
+
+        if (saveMangasFile(data)) {
+            res.status(201).json({
+                message: 'Mangá doado com sucesso',
+                manga: novoManga
+            });
+        } else {
+            res.status(500).json({ message: 'Erro ao salvar mangá' });
+        }
+    } catch (error) {
+        console.error('Erro ao processar doação:', error);
+        res.status(500).json({ message: 'Erro ao processar doação do mangá' });
+    }
+});
+
+// Todas as outras rotas requerem autenticação
+app.use('/api', checkAuth);
+
 // Configuração do servidor
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
     console.log(`Servidor rodando em http://localhost:${PORT}`);
+});
+
+// Configurações para melhorar o gerenciamento de conexões
+server.timeout = 30000; // 30 segundos de timeout
+server.keepAliveTimeout = 30000; // 30 segundos de keep-alive
+server.headersTimeout = 30000; // 30 segundos de timeout para headers
+
+// Tratamento de erros do servidor
+server.on('error', (error) => {
+    if (error.code === 'EADDRINUSE') {
+        console.error(`Porta ${PORT} já está em uso. Tentando usar outra porta...`);
+        server.close();
+        // Tenta usar outra porta
+        const newPort = PORT + 1;
+        server.listen(newPort, () => {
+            console.log(`Servidor rodando em http://localhost:${newPort}`);
+        });
+    } else {
+        console.error('Erro no servidor:', error);
+    }
+});
+
+// Tratamento de encerramento gracioso
+process.on('SIGTERM', () => {
+    console.log('Recebido sinal SIGTERM. Encerrando servidor...');
+    server.close(() => {
+        console.log('Servidor encerrado.');
+        process.exit(0);
+    });
+});
+
+process.on('SIGINT', () => {
+    console.log('Recebido sinal SIGINT. Encerrando servidor...');
+    server.close(() => {
+        console.log('Servidor encerrado.');
+        process.exit(0);
+    });
 });
 

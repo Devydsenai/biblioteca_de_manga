@@ -1,11 +1,81 @@
 /* ==========================================================================
    Configurações Globais
    ========================================================================== */
-body {
+   body {
     margin: 0;
     background: #10101a;
     color: #fff;
     font-family: 'Montserrat', Arial, sans-serif;
+}
+
+/* Estilo para o botão de fechar (X) */
+.btn-close {
+    color: #ffffff !important;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.9);
+    opacity: 1 !important;
+    transition: all 0.3s ease;
+    filter: brightness(2) contrast(1.5);
+    font-size: 2rem;
+    font-weight: 400;
+    position: relative;
+    z-index: 1000;
+    background: transparent;
+    border: none;
+    padding: 0.5rem;
+    margin: -0.5rem -0.5rem -0.5rem auto;
+}
+
+.btn-close:hover {
+    color: #ffffff !important;
+    transform: scale(1.2);
+    text-shadow: 0 0 15px rgba(255, 255, 255, 1);
+    filter: brightness(2.5) contrast(1.8);
+}
+
+.btn-close:focus {
+    box-shadow: none;
+    outline: none;
+}
+
+.btn-close::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 40px;
+    height: 40px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 70%);
+    border-radius: 50%;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: -1;
+}
+
+.btn-close:hover::before {
+    opacity: 1;
+}
+
+/* Sobrescrevendo estilos do Bootstrap */
+button.btn-close {
+    background: transparent !important;
+    opacity: 1 !important;
+    color: #ffffff !important;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.9) !important;
+    filter: brightness(2) contrast(1.5) !important;
+}
+
+button.btn-close:hover {
+    background: transparent !important;
+    opacity: 1 !important;
+    color: #ffffff !important;
+    text-shadow: 0 0 15px rgba(255, 255, 255, 1) !important;
+    filter: brightness(2.5) contrast(1.8) !important;
+}
+
+button.btn-close:focus {
+    box-shadow: none !important;
+    outline: none !important;
 }
 
 /* ==========================================================================
@@ -1650,18 +1720,20 @@ footer {
 }
 
 .manga-info-container .genre-tag {
-    background: rgba(24, 249, 196, 0.1);
-    color: #18f9c4;
+    background: linear-gradient(90deg, #18f9c4, #18d2f9);
+    color: #10101a;
     padding: 6px 12px;
     border-radius: 20px;
     font-size: 0.9rem;
-    border: 1px solid rgba(24, 249, 196, 0.3);
+    font-weight: 500;
+    border: none;
     transition: all 0.3s ease;
+    box-shadow: 0 4px 24px #18f9c455;
 }
 
 .manga-info-container .genre-tag:hover {
-    background: rgba(24, 249, 196, 0.2);
     transform: translateY(-2px);
+    box-shadow: 0 6px 28px #18f9c455;
 }
 
 .manga-info-container .sinopse {
