@@ -27,7 +27,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap" rel="stylesheet">
     <!--Roboto Slab-->
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@100..900&display=swap" rel="stylesheet">
-    
+
     <!-- Material Icons para ícones de interface -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <!-- Font Awesome para ícones sociais -->
@@ -41,6 +41,7 @@
     <nav class="navbar navbar-expand-lg">
       <div class="container-fluid">
         <!-- Logo do site -->
+        <img src="../img/logo-astro.png" alt="Logo do site" class="logo-img">
         <a class="logo" href="#">Biblioteca de Mangás</a>
         
         <!-- Botão do menu mobile -->
@@ -262,21 +263,18 @@
       </div>
     </header>
 
-
-
     <!-- Conteúdo principal do site -->
-
 
     <main>
       <!-- Seção de Mangás Mais Populares -->
 
-      <section class="section">
+      <section id="populares" class="section">
         <div class="section-header">
           <h2>Mais Populares</h2>
           <a href="#" class="view-all">Ver todos</a>
         </div>
-        <!-- Grid de cards de mangás -->
 
+        <!-- Grid de cards de mangás -->
         <div class="cards">
           <!-- Card de mangá individual -->
 
@@ -384,7 +382,7 @@
       </section>
 
       <!-- Seção Top 10 -->
-      <section class="top10-section">
+      <section id="top10" class="top10-section">
         <div class="top10-header">
           <i class="fas fa-crown top10-icon"></i>
           <h2>Top 10 da Semana</h2>
@@ -534,7 +532,7 @@
       </section>
 
       <!-- Seção de Mangás em Destaque -->
-      <section class="section">
+      <section id="destaques" class="section">
         <div class="section-header">
           <h2>Mangás em Destaque</h2>
           <a href="#" class="view-all">Ver todos</a>
@@ -545,7 +543,7 @@
       </section>
 
       <!-- Seção de Últimas Atualizações -->
-      <section class="section">
+      <section id="atualizacao" class="section">
         <div class="section-header">
           <h2>Últimas Atualizações</h2>
           <div class="section-actions">
@@ -570,7 +568,7 @@
                     <span class="update-views"><i class="fas fa-eye"></i> 1.2k</span>
                   </div>
                 </div>
-                <span class="badge lancamento">Finalizado</span>
+                <span class="badge concluido">Concluído</span>
               </div>
 
               <!-- Demon Slayer -->
@@ -584,7 +582,7 @@
                     <span class="update-views"><i class="fas fa-eye"></i> 2.5k</span>
                   </div>
                 </div>
-                <span class="badge andamento">Em Andamento</span>
+                <span class="badge concluido">Concluído</span>
               </div>
 
               <!-- My Hero Academia -->
@@ -598,7 +596,7 @@
                     <span class="update-views"><i class="fas fa-eye"></i> 3.1k</span>
                   </div>
                 </div>
-                <span class="badge andamento">Em Andamento</span>
+                <span class="badge concluido">Concluído</span>
               </div>
 
               <!-- Chainsaw Man -->
@@ -612,7 +610,7 @@
                     <span class="update-views"><i class="fas fa-eye"></i> 4.2k</span>
                   </div>
                 </div>
-                <span class="badge lancamento">Em Lançamento</span>
+                <span class="badge lancamento">Lançamento</span>
               </div>
 
               <!-- One Punch Man -->
@@ -640,7 +638,7 @@
                     <span class="update-views"><i class="fas fa-eye"></i> 3.2k</span>
                   </div>
                 </div>
-                <span class="badge lancamento">Em Lançamento</span>
+                <span class="badge lancamento">Lançamento</span>
               </div>
             </div>
           </div>
@@ -675,15 +673,14 @@
           <p>&copy; 2025 Manga Livre. Todos os direitos reservados.</p>
         </div>
 
-
         <!-- Links Rápidos -->
         <div class="footer-section">
           <h4>Links Rápidos</h4>
           <ul>
-            <li><a href="#">Mangás Populares</a></li>
-            <li><a href="#">Últimas Atualizações</a></li>
-            <li><a href="#">Mangás em Destaque</a></li>
-            <li><a href="#">Ranking Semanal</a></li>
+            <li><a href="#populares">- Mangás Populares</a></li>
+            <li><a href="#atualizacao">- Últimas Atualizações</a></li>
+            <li><a href="#destaques">- Mangás em Destaque</a></li>
+            <li><a href="#top10">- Ranking Semanal</a></li>
           </ul>
         </div>
 
@@ -691,10 +688,10 @@
         <div class="footer-section">
           <h4>Suporte</h4>
           <ul>
-            <li><a href="#">FAq</a></li>
-            <li><a href="#">Contato</a></li>
-            <li><a href="#">Reportar Problema</a></li>
-            <li><a href="#">Termos de Uso</a></li>
+            <li><a href="#">- FAq</a></li>
+            <li><a href="#">- Contato</a></li>
+            <li><a href="#">- Reportar Problema</a></li>
+            <li><a href="#">- Termos de Uso</a></li>
           </ul>
         </div>
 
@@ -702,10 +699,10 @@
         <div class="footer-section">
           <h4>Conecte-se</h4>
           <div class="social">
-            <a href="#"><i class="fab fa-facebook"></i></a>
-            <a href="#"><i class="fab fa-twitter"></i></a>
-            <a href="#"><i class="fab fa-instagram"></i></a>
-            <a href="#"><i class="fab fa-discord"></i></a>
+            <a href="https://instagram.com"><i class="fab fa-instagram"></i></a>
+            <a href="https://x.com"><i class="fab fa-twitter"></i></a>
+            <a href="https://discord.gg"><i class="fab fa-discord"></i></a>
+            <a href="https://github.com/Devydsenai/biblioteca_de_manga"><i class="fab fa-github"></i></a>
           </div>
         </div>
         
