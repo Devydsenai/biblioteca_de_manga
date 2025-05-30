@@ -269,7 +269,34 @@
       "sinopse": "Kazuma Satou é um jovem que morre e é reencarnado em um mundo de fantasia. Ele forma um grupo com uma deusa, uma maga e uma guerreira para enfrentar monstros e completar missões."
     },
     {
-      "id": 1748446689667,
+      "id": 16,
+      "titulo": "Kuroko no Basket",
+      "autor": "Tadatoshi Fujimaki",
+      "status": "Concluído",
+      "nota": 9.1,
+      "capitulos": 275,
+      "generos": ["Ação", "Comédia", "Esportes"],
+      "imagem": "http://localhost:3001/img/KurokoNoBasket.png",
+      "sinopse": "A Escola Secundária Teiko dominou o basquete no Japão com sua lendária 'Geração dos Milagres', composta por cinco estrelas e um misterioso sexto homem, Tetsuya Kuroko. Agora no ensino médio, Kuroko se junta a Taiga Kagami na Seirin High, um time promissor. Juntos, eles enfrentam os antigos companheiros de Kuroko para levar Seirin ao topo do Japão."
+    },
+    {
+      "id": 174844668966,
+      "titulo": "Hunter x Hunter",
+      "autor": "Yoshihiro Togashi",
+      "status": "Em Andamento",
+      "nota": 9.8,
+      "capitulos": 400,
+      "generos": [
+        "Ação",
+        "Comédia",
+        "Aventura"
+      ],
+      
+      "imagem": "http://localhost:3001/img/HunterXHunter.png",
+      "sinopse": "Gon Freecss é um jovem que descobre que seu pai, que ele acreditava estar morto, é um caçador lendário. Ele decide se tornar um caçador para encontrá-lo e descobrir mais sobre sua origem."
+    },
+    {
+      "id": 14,
       "titulo": "Hunter x Hunter",
       "autor": "Yoshihiro Togashi",
       "status": "Em Andamento",
