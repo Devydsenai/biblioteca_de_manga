@@ -257,6 +257,17 @@
       "sinopse": "Ken Kaneki é um estudante universitário que se torna meio ghoul após um encontro fatídico. Ele precisa aprender a viver em um mundo onde humanos e ghouls coexistem."
     },
     {
+      "id": 15,
+      "titulo": "Ranma 1/2",
+      "autor": "Natsume Akatsuki",
+      "status": "Concluído",
+      "nota": 8.5,
+      "capitulos": 407,
+      "generos": ["Ação", "Comédia", "Aventura"],
+      "imagem": "/img/Ranma.png",
+      "sinopse": "Ranma Saotome é um jovem artista marcial que, após um acidente em uma fonte amaldiçoada, se transforma em uma garota sempre que é molhado com água fria. Ele deve encontrar uma cura enquanto lida com suas novas circunstâncias e os desafios de sua vida dupla."
+    },
+    {
       "id": 1748446689666,
       "titulo": "Konosuba",
       "autor": "Natsume Akatsuki",
