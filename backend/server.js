@@ -457,6 +457,7 @@ app.get('/api/mangas/search', (req, res) => {
             manga.autor.toLowerCase().includes(searchTerm) ||
             manga.generos.some(genero => genero.toLowerCase().includes(searchTerm)) ||
             manga.sinopse.toLowerCase().includes(searchTerm)
+            
         );
     });
 
@@ -542,6 +543,7 @@ app.post('/api/manga/:id/available', checkAuth, (req, res) => {
 app.get('/api/mangas/:id', (req, res) => {
     const data = readMangasFile();
     const manga = data.mangas.find(m => m.id === parseInt(req.params.id));
+    
     
     if (!manga) {
         return res.status(404).json({ message: 'Mangá não encontrado' });
