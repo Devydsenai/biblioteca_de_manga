@@ -263,7 +263,11 @@
       "status": "Concluído",
       "nota": 8.5,
       "capitulos": 407,
-      "generos": ["Ação", "Comédia", "Aventura"],
+      "generos": [
+        "Ação",
+        "Comédia",
+        "Aventura"
+      ],
       "imagem": "/img/Ranma.png",
       "sinopse": "Ranma Saotome é um jovem artista marcial que, após um acidente em uma fonte amaldiçoada, se transforma em uma garota sempre que é molhado com água fria. Ele deve encontrar uma cura enquanto lida com suas novas circunstâncias e os desafios de sua vida dupla."
     },
@@ -290,9 +294,29 @@
       "status": "Concluído",
       "nota": 9.1,
       "capitulos": 275,
-      "generos": ["Ação", "Comédia", "Esportes"],
+      "generos": [
+        "Ação",
+        "Comédia",
+        "Esportes"
+      ],
       "imagem": "http://localhost:3001/img/KurokoNoBasket.png",
       "sinopse": "A Escola Secundária Teiko dominou o basquete no Japão com sua lendária 'Geração dos Milagres', composta por cinco estrelas e um misterioso sexto homem, Tetsuya Kuroko. Agora no ensino médio, Kuroko se junta a Taiga Kagami na Seirin High, um time promissor. Juntos, eles enfrentam os antigos companheiros de Kuroko para levar Seirin ao topo do Japão."
+    },
+    {
+      "id": 1748628614366,
+      "titulo": " yu gi oh ",
+      "autor": "Kazuki Takahashi ",
+      "status": "CONCLUÍDO",
+      "nota": 8.7,
+      "capitulos": 200,
+      "generos": [
+        "Ação",
+        "Aventura",
+        "Fantasia",
+        "Suspense"
+      ],
+      "sinopse": "A trama segue a história de um menino chamado Yugi Muto, que remonta o antigo Enigma do Milênio, e desperta um espírito dentro de seu corpo com a personalidade de um jogador e que resolve seus conflitos usando vários jogos.",
+      "imagem": "/img/1748628614344-313502288.png"
     }
   ]
 }

@@ -1467,10 +1467,17 @@
 
     // Gerenciamento de Doação de Mangá
     const donation = {
+        isSubmitting: false,
+
         init() {
             this.form = document.getElementById('donationForm');
             this.coverInput = document.getElementById('mangaCover');
             this.coverPreview = document.getElementById('coverPreview');
+            console.log('Inicializando doação:', {
+                form: this.form,
+                coverInput: this.coverInput,
+                coverPreview: this.coverPreview
+            });
             this.setupEventListeners();
         },
 
@@ -1478,28 +1485,75 @@
             // Preview da imagem da capa
             if (this.coverInput) {
                 this.coverInput.addEventListener('change', (e) => {
+                    console.log('Arquivo selecionado:', e.target.files[0]);
                     const file = e.target.files[0];
                     if (file) {
+                        // Verificar se o arquivo é uma imagem
+                        if (!file.type.startsWith('image/')) {
+                            console.error('Arquivo não é uma imagem:', file.type);
+                            this.showNotification('Por favor, selecione um arquivo de imagem válido.', 'error');
+                            this.coverInput.value = '';
+                            return;
+                        }
+
+                        // Verificar o tamanho do arquivo (máximo 5MB)
+                        if (file.size > 5 * 1024 * 1024) {
+                            console.error('Arquivo muito grande:', file.size);
+                            this.showNotification('A imagem deve ter no máximo 5MB.', 'error');
+                            this.coverInput.value = '';
+                            return;
+                        }
+
                         const reader = new FileReader();
                         reader.onload = (e) => {
-                            this.coverPreview.src = e.target.result;
-                            this.coverPreview.style.display = 'block';
+                            console.log('FileReader carregou a imagem:', e.target.result.substring(0, 100) + '...');
+                            if (this.coverPreview) {
+                                console.log('Atualizando preview da imagem');
+                                // Remover classe fade-in se existir
+                                this.coverPreview.classList.remove('fade-in');
+                                // Forçar um reflow
+                                void this.coverPreview.offsetWidth;
+                                // Atualizar a imagem
+                                this.coverPreview.src = e.target.result;
+                                this.coverPreview.style.display = 'block';
+                                // Adicionar classe para animação
+                                this.coverPreview.classList.add('fade-in');
+                            } else {
+                                console.error('Elemento coverPreview não encontrado');
+                            }
+                        };
+                        reader.onerror = (error) => {
+                            console.error('Erro ao ler o arquivo:', error);
+                            this.showNotification('Erro ao carregar a imagem. Tente novamente.', 'error');
                         };
                         reader.readAsDataURL(file);
                     }
                 });
+            } else {
+                console.error('Elemento coverInput não encontrado');
             }
 
             // Submissão do formulário
             if (this.form) {
-                this.form.addEventListener('submit', (e) => {
+                this.form.addEventListener('submit', async (e) => {
                     e.preventDefault();
-                    this.handleDonation();
+                    console.log('Formulário submetido');
+                    if (this.isSubmitting) {
+                        console.log('Formulário já está sendo submetido');
+                        return;
+                    }
+                    await this.handleDonation();
                 });
+            } else {
+                console.error('Elemento form não encontrado');
             }
         },
 
         async handleDonation() {
+            if (this.isSubmitting) return;
+            this.isSubmitting = true;
+            console.log('Iniciando processo de doação');
+
             const formData = new FormData();
             formData.append('titulo', document.getElementById('mangaTitle').value);
             formData.append('autor', document.getElementById('mangaAuthor').value);
@@ -1508,88 +1562,54 @@
             formData.append('capitulos', document.getElementById('mangaChapters').value);
             formData.append('generos', document.getElementById('mangaGenres').value);
             formData.append('sinopse', document.getElementById('mangaSynopsis').value);
-            formData.append('imagem', this.coverInput.files[0]);
+            
+            // Garantir que o arquivo da imagem seja anexado corretamente
+            const coverFile = this.coverInput.files[0];
+            console.log('Arquivo da capa:', coverFile);
+            if (coverFile) {
+                console.log('Anexando arquivo ao FormData');
+                formData.append('imagem', coverFile);
+            } else {
+                console.warn('Nenhum arquivo de imagem selecionado');
+            }
 
             try {
+                console.log('Enviando requisição para o servidor');
                 const response = await fetch('http://localhost:3001/api/mangas/donate', {
                     method: 'POST',
                     body: formData
                 });
 
                 const data = await response.json();
+                console.log('Resposta do servidor:', data);
 
                 if (response.ok) {
+                    console.log('Doação realizada com sucesso');
                     // Fechar o modal
                     const donationModal = bootstrap.Modal.getInstance(document.getElementById('donationModal'));
                     donationModal.hide();
 
                     // Limpar o formulário
                     this.form.reset();
-                    this.coverPreview.style.display = 'none';
+                    if (this.coverPreview) {
+                        this.coverPreview.src = '';
+                        this.coverPreview.style.display = 'none';
+                    }
 
                     // Mostrar mensagem de sucesso
                     this.showNotification('Mangá doado com sucesso!', 'success');
 
-                    // Atualizar a seção de últimas atualizações
-                    this.updateLatestUpdates(data.manga);
+                    // Recarregar a lista de últimas atualizações
+                    await loadLatestUpdates();
                 } else {
+                    console.error('Erro na resposta do servidor:', data);
                     this.showNotification(data.message || 'Erro ao doar mangá', 'error');
                 }
             } catch (error) {
                 console.error('Erro ao doar mangá:', error);
                 this.showNotification('Erro ao doar mangá. Tente novamente.', 'error');
-            }
-        },
-
-        updateLatestUpdates(manga) {
-            const updatesContainer = document.querySelector('.carousel-track');
-            if (!updatesContainer) return;
-
-            // Verificar se o mangá já existe no container
-            const existingCard = updatesContainer.querySelector(`.update-card[data-manga-id="${manga.id}"]`);
-            if (existingCard) {
-                return; // Se já existe, não adiciona novamente
-            }
-
-            // Criar novo card
-            const newCard = document.createElement('div');
-            newCard.className = 'card update-card';
-            newCard.dataset.mangaId = manga.id;
-            newCard.innerHTML = `
-                <img src="${manga.imagem}" alt="${manga.titulo}" onerror="this.src='http://localhost:3001/img/default-manga.png'">
-                <div class="card-info">
-                    <h3>${manga.titulo}</h3>
-                    <p><span class="star">★</span> ${manga.nota}</p>
-                <div class="update-info">
-                    <span class="update-time">Agora mesmo</span>
-                    <span class="update-views"><i class="fas fa-eye"></i> 0</span>
-                    </div>
-                </div>
-                <span class="badge ${manga.status.toLowerCase().includes('lançamento') ? 'lancamento' : 'andamento'}">${manga.status}</span>
-                <div class="card-actions">
-                    <button class="btn-delete">
-                        <i class="fas fa-trash"></i> Deletar
-                    </button>
-                    <button class="btn-keep">
-                        <i class="fas fa-check"></i> Manter
-                    </button>
-                </div>
-            `;
-
-            // Adicionar event listeners aos botões
-            const deleteButton = card.querySelector('.btn-delete');
-            const keepButton = card.querySelector('.btn-keep');
-
-            deleteButton.addEventListener('click', () => handleMangaAction(manga.id, 'delete'));
-            keepButton.addEventListener('click', () => handleMangaAction(manga.id, 'keep'));
-
-            // Adicionar o novo card no início do carrossel
-            updatesContainer.insertBefore(newCard, updatesContainer.firstChild);
-
-            // Remover o último card se houver mais de 6 cards
-            const cards = updatesContainer.querySelectorAll('.update-card');
-            if (cards.length > 6) {
-                updatesContainer.removeChild(cards[cards.length - 1]);
+            } finally {
+                this.isSubmitting = false;
             }
         },
 
@@ -2006,7 +2026,7 @@
     document.addEventListener('DOMContentLoaded', () => {
         auth.init();
         carousel.init();
-        donation.init();
+        donation.init(); // Inicializar doação
         loadLatestUpdates(); // Carregar últimas atualizações
         loadFeaturedMangas(); // Carregar mangás em destaque
     });
