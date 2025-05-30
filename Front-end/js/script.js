@@ -300,6 +300,77 @@
                     }
                 });
             }
+
+            // Configurar os modais
+            this.setupModals();
+        },
+
+        setupModals() {
+            const loginModal = document.getElementById('loginModal');
+            const registerModal = document.getElementById('registerModal');
+
+            if (loginModal) {
+                loginModal.addEventListener('hidden.bs.modal', () => {
+                    // Limpar o formulário de login
+                    if (this.loginForm) {
+                        this.loginForm.reset();
+                    }
+                    // Remover qualquer classe de erro ou mensagem
+                    const errorElements = loginModal.querySelectorAll('.error-message');
+                    errorElements.forEach(el => el.remove());
+                    // Garantir que a página está funcionando
+                    document.body.style.overflow = '';
+                    document.body.style.paddingRight = '';
+                    // Remover o backdrop do modal
+                    const backdrop = document.querySelector('.modal-backdrop');
+                    if (backdrop) {
+                        backdrop.remove();
+                    }
+                });
+            }
+
+            if (registerModal) {
+                registerModal.addEventListener('hidden.bs.modal', () => {
+                    // Limpar o formulário de registro
+                    if (this.registerForm) {
+                        this.registerForm.reset();
+                    }
+                    // Limpar a preview do avatar
+                    if (this.avatarPreview) {
+                        this.avatarPreview.src = '../img/default-avatar.png';
+                    }
+                    // Remover qualquer classe de erro ou mensagem
+                    const errorElements = registerModal.querySelectorAll('.error-message');
+                    errorElements.forEach(el => el.remove());
+                    // Garantir que a página está funcionando
+                    document.body.style.overflow = '';
+                    document.body.style.paddingRight = '';
+                    // Remover o backdrop do modal
+                    const backdrop = document.querySelector('.modal-backdrop');
+                    if (backdrop) {
+                        backdrop.remove();
+                    }
+                    // Remover a classe modal-open do body
+                    document.body.classList.remove('modal-open');
+                });
+            }
+
+            // Adicionar event listeners para os botões de fechar
+            const closeButtons = document.querySelectorAll('[data-bs-dismiss="modal"]');
+            closeButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    // Garantir que a página está funcionando
+                    document.body.style.overflow = '';
+                    document.body.style.paddingRight = '';
+                    // Remover o backdrop do modal
+                    const backdrop = document.querySelector('.modal-backdrop');
+                    if (backdrop) {
+                        backdrop.remove();
+                    }
+                    // Remover a classe modal-open do body
+                    document.body.classList.remove('modal-open');
+                });
+            });
         },
 
         async handleLogin() {
@@ -736,6 +807,15 @@
     }
 
     async function loadMangaDetails(mangaId) {
+        // Verificar se o usuário está logado
+        const token = localStorage.getItem('token');
+        if (!token) {
+            // Se não estiver logado, mostrar modal de login
+            const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
+            loginModal.show();
+            return;
+        }
+
         try {
             const response = await fetch(`http://localhost:3001/api/mangas/${mangaId}`);
             
@@ -1602,11 +1682,23 @@
 
                 deleteButton.addEventListener('click', (e) => {
                     e.stopPropagation();
+                    const token = localStorage.getItem('token');
+                    if (!token) {
+                        const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
+                        loginModal.show();
+                        return;
+                    }
                     handleMangaAction(manga.id, 'delete');
                 });
                 
                 keepButton.addEventListener('click', (e) => {
                     e.stopPropagation();
+                    const token = localStorage.getItem('token');
+                    if (!token) {
+                        const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
+                        loginModal.show();
+                        return;
+                    }
                     handleMangaAction(manga.id, 'keep');
                 });
 
@@ -1628,64 +1720,6 @@
                 </button>
             `;
             updatesContainer.appendChild(moreMangaButton);
-
-            // Adicionar estilos para o botão
-            const style = document.createElement('style');
-            style.textContent = `
-                .more-manga-button {
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    padding: 20px;
-                    width: 100%;
-                }
-
-                .btn-more-manga {
-                    background: #18f9c4;
-                    color: #10101a;
-                    border: none;
-                    padding: 12px 24px;
-                    border-radius: 8px;
-                    font-size: 1.1rem;
-                    cursor: pointer;
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                    transition: all 0.3s ease;
-                    box-shadow: 0 4px 12px rgba(24, 249, 196, 0.2);
-                }
-
-                .btn-more-manga:hover {
-                    background: #15e0b0;
-                    transform: translateY(-2px);
-                    box-shadow: 0 6px 16px rgba(24, 249, 196, 0.3);
-                }
-
-                .btn-more-manga i {
-                    font-size: 1.2rem;
-                }
-
-                .btn-more-manga.requires-auth {
-                    opacity: 0.7;
-                    cursor: not-allowed;
-                }
-            `;
-            document.head.appendChild(style);
-
-            // Adicionar evento de clique ao botão
-            const btnMoreManga = moreMangaButton.querySelector('.btn-more-manga');
-            btnMoreManga.addEventListener('click', () => {
-                // Aqui você pode adicionar a lógica para carregar mais mangás
-                // Por exemplo, carregar os próximos 6 mangás
-                const nextMangas = filteredMangas.slice(6, 12);
-                if (nextMangas.length > 0) {
-                    nextMangas.forEach(manga => {
-                        // Criar e adicionar novos cards
-                        const card = createMangaCard(manga);
-                        updatesContainer.insertBefore(card, moreMangaButton);
-                    });
-                }
-            });
 
         } catch (error) {
             console.error('Erro ao carregar últimas atualizações:', error);
@@ -1983,13 +2017,10 @@
         if (!token) {
             // Bloquear apenas as interações
             const elementsToBlock = [
-                '.card', // Cards de mangá
-                '.search-container', // Barra de pesquisa
-                '.btn-keep', // Botão manter
-                '.btn-delete', // Botão deletar
-                '.manga-actions', // Ações do mangá
-                '.carousel-control', // Controles do carrossel
-                '.view-all' // Links "Ver todos"
+                '.update-card', // Cards de atualização
+                '.update-card .card-actions', // Botões de ação dos cards de atualização
+                '.update-card .btn-keep', // Botão manter
+                '.update-card .btn-delete' // Botão deletar
             ];
 
             elementsToBlock.forEach(selector => {
@@ -2011,39 +2042,58 @@
             // Adicionar estilos para elementos bloqueados
             const style = document.createElement('style');
             style.textContent = `
-                .requires-auth {
+                .update-card.requires-auth {
                     position: relative;
                     cursor: pointer;
                 }
 
-                .requires-auth::after {
+                .update-card.requires-auth::after {
                     content: '';
                     position: absolute;
                     top: 0;
                     left: 0;
                     right: 0;
                     bottom: 0;
-                    background: rgba(0, 0, 0, 0.1);
+                    background: rgba(0, 0, 0, 0.5);
                     opacity: 0;
                     transition: opacity 0.3s ease;
+                    border-radius: 16px;
+                    z-index: 1;
                 }
 
-                .requires-auth:hover::after {
+                .update-card.requires-auth:hover::after {
                     opacity: 1;
                 }
 
-                .requires-auth:hover::before {
+                .update-card.requires-auth:hover::before {
                     content: 'Faça login para interagir';
                     position: absolute;
                     top: 50%;
                     left: 50%;
                     transform: translate(-50%, -50%);
-                    background: rgba(0, 0, 0, 0.8);
-                    color: white;
-                    padding: 8px 16px;
-                    border-radius: 4px;
+                    background: rgba(24, 249, 196, 0.9);
+                    color: #10101a;
+                    padding: 12px 24px;
+                    border-radius: 8px;
                     font-size: 14px;
-                    z-index: 1;
+                    font-weight: 500;
+                    z-index: 2;
+                    white-space: nowrap;
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+                }
+
+                .update-card.requires-auth .card-info {
+                    filter: blur(2px);
+                    transition: filter 0.3s ease;
+                }
+
+                .update-card.requires-auth:hover .card-info {
+                    filter: blur(3px);
+                }
+
+                .update-card .card-actions.requires-auth {
+                    opacity: 0.5;
+                    pointer-events: none;
                 }
             `;
             document.head.appendChild(style);

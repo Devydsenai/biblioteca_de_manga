@@ -1100,6 +1100,8 @@ footer {
     justify-content: center;
     transition: all 0.2s;
     z-index: 2;
+    pointer-events: auto !important;
+    opacity: 1 !important;
 }
 
 .carousel-control:hover {
@@ -1966,4 +1968,54 @@ footer {
         width: 100%;
         justify-content: center;
     }
+}
+
+/* Estilos para cards quando usuário não está logado */
+.card.requires-auth {
+    position: relative;
+    cursor: pointer;
+}
+
+.card.requires-auth::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    border-radius: 16px;
+    z-index: 1;
+}
+
+.card.requires-auth:hover::after {
+    opacity: 1;
+}
+
+.card.requires-auth:hover::before {
+    content: 'Faça login para ver detalhes';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(24, 249, 196, 0.9);
+    color: #10101a;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    z-index: 2;
+    white-space: nowrap;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.card.requires-auth .card-info {
+    filter: blur(2px);
+    transition: filter 0.3s ease;
+}
+
+.card.requires-auth:hover .card-info {
+    filter: blur(3px);
 }
