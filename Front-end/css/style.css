@@ -382,6 +382,7 @@ button.btn-close:focus {
     font-size: 1rem;
     box-shadow: 0 4px 24px #18f9c455;
     transition: all 0.2s;
+    border-color: #ffffff00;
 }
 
 .btn-outline {
@@ -394,6 +395,8 @@ button.btn-close:focus {
 .btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 28px #18f9c455;
+    border-color: #ffffff00;
+    color: white;
 }
 
 .btn-outline:hover {
@@ -561,7 +564,7 @@ button.btn-close:focus {
    ========================================================================== */
 footer {
     background: #181828;
-    padding: 60px 0;
+    padding: 60px 0 0 0;
     margin-top: 60px;
 }
 
@@ -605,6 +608,15 @@ footer {
 
 .footer-section a:hover {
     color: #18f9c4;
+}
+
+.footer-bottom p{
+    padding: 10px 0 60px;
+    margin: 0;
+    text-align: center;
+    background-color: #181828;
+    font-size: 0.8rem;
+
 }
 
 /* Ícones sociais */
@@ -920,7 +932,7 @@ footer {
     border: none;
     padding: 12px;
     font-weight: 500;
-    margin-top: 20px;
+    margin-top: 4px;
 }
 
 .modal .btn-primary:hover {
@@ -1570,6 +1582,7 @@ footer {
 }
 
 .genre-tag {
+    font-family: "RobotoSlab", sans-serif;
     background: rgba(24, 249, 196, 0.1);
     color: #18f9c4;
     padding: 4px 12px;

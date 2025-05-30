@@ -1134,6 +1134,11 @@
             color: #232342 !important;
         }
 
+        .badge.concluido {
+            background-color: #28a745 !important;
+            color: #232342 !important;
+        }
+
         /* Estilo para o ícone X */
         .btn-close {
             color: #ffffff !important;
@@ -1305,6 +1310,17 @@
         .card {
             position: relative !important;
             overflow: hidden !important;
+        }
+        
+        /* Tags de gênero */
+        .genre-tag {
+            background-color: rgba(24, 249, 196);
+            color: #232342;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            border: 1px solid rgba(24, 249, 196, 0.3);
+            transition: all 0.3s ease;
         }
     `;
     document.head.appendChild(searchStyles);

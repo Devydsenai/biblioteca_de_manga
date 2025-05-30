@@ -4,7 +4,7 @@
     <!-- Meta tags e configurações básicas -->
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manga Livre - Leia Mangás Online</title>
+    <title>Biblioteca de Mangás - Leia Mangás Online </title>
 
     <!-- Favicon -->
     <link rel="icon" href="../img/favicon.ico" type="image/x-icon">
@@ -15,7 +15,7 @@
     <!-- Bootstrap Icons para ícones -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <!-- Google Fonts - Montserrat para tipografia -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <!--=========== FONTS ===============-->
@@ -33,7 +33,6 @@
     <!-- Font Awesome para ícones sociais -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- Estilos personalizados -->
-     
     <link rel="stylesheet" href="../../css/style.css" />
   </head>
   <body>
@@ -95,11 +94,11 @@
                 <div class="modal-body">
                     <form id="loginForm">
                         <div class="form-group">
-                            <label for="loginEmail">Email</label>
+                            <label for="loginEmail">Email *</label>
                             <input type="email" class="form-control" id="loginEmail" required>
                         </div>
                         <div class="form-group">
-                            <label for="loginPassword">Senha</label>
+                            <label for="loginPassword">Senha *</label>
                             <input type="password" class="form-control" id="loginPassword" required>
                         </div>
                         <button type="submit" class="btn btn-primary">Entrar</button>
@@ -124,19 +123,19 @@
                 <div class="modal-body">
                     <form id="registerForm">
                         <div class="form-group">
-                            <label for="registerName">Nome</label>
+                            <label for="registerName">Nome *</label>
                             <input type="text" class="form-control" id="registerName" required>
                         </div>
                         <div class="form-group">
-                            <label for="registerEmail">Email</label>
+                            <label for="registerEmail">Email *</label>
                             <input type="email" class="form-control" id="registerEmail" required>
                         </div>
                         <div class="form-group">
-                            <label for="registerPassword">Senha</label>
+                            <label for="registerPassword">Senha *</label>
                             <input type="password" class="form-control" id="registerPassword" required>
                         </div>
                         <div class="form-group">
-                            <label for="registerAvatar">Avatar (opcional)</label>
+                            <label for="registerAvatar">Avatar</label>
                             <input type="file" class="form-control-file" id="registerAvatar" accept="image/*">
                         </div>
                         <button type="submit" class="btn btn-primary">Registrar</button>
@@ -264,8 +263,8 @@
     </header>
 
     <!-- Conteúdo principal do site -->
-
     <main>
+
       <!-- Seção de Mangás Mais Populares -->
 
       <section id="populares" class="section">
@@ -277,7 +276,6 @@
         <!-- Grid de cards de mangás -->
         <div class="cards">
           <!-- Card de mangá individual -->
-
 
           <!--One Piece-->
           <div class="card" data-manga-id="1">
@@ -669,8 +667,7 @@
         <!-- Seção Sobre -->
         <div class="footer-section">
           <h4>Sobre</h4>
-          <p>Manga Livre é o melhor site para ler mangás online. Oferecemos uma vasta coleção de títulos populares e atualizações diárias.</p>
-          <p>&copy; 2025 Manga Livre. Todos os direitos reservados.</p>
+          <p>Biblioteca de Mangá é o melhor site para ler mangás online. Oferecemos uma vasta coleção de títulos populares e atualizações semanais.</p>
         </div>
 
         <!-- Links Rápidos -->
@@ -701,13 +698,31 @@
           <div class="social">
             <a href="https://instagram.com"><i class="fab fa-instagram"></i></a>
             <a href="https://x.com"><i class="fab fa-twitter"></i></a>
-            <a href="https://discord.gg"><i class="fab fa-discord"></i></a>
+            <a href="https://discord.gg/rDVmzRxVAX"><i class="fab fa-discord"></i></a>
             <a href="https://github.com/Devydsenai/biblioteca_de_manga"><i class="fab fa-github"></i></a>
           </div>
         </div>
         
+        <!-- Desenvolvedores -->
+        <div class="footer-section">
+          <h4>Desenvolvedores <i class="fab fa-github"></i></h4>
+            <ul>
+              <li><a href="https://github.com/toinho822" >Antonio Monteiro</a></li>
+              <li><a href="https://github.com/Devydsenai" >Devyd Silva</a></li>
+              <li><a href="https://github.com/Guilherme-Cesar-dev" >Guilherme César</a></li>
+              <li><a href="https://github.com/jisuyki" >Guilherme Santos</a></li>
+              <li><a href="https://github.com/gustjvo" >Gustavo André</a></li>
+            </ul>
+        </div>
+
       </div>
     </footer>
+
+        <div class="footer-bottom">
+          <p>&copy; 2025 Biblioteca de Mangá. Todos os direitos reservados.</p>
+        </div>
+
+
 
     <!-- Bootstrap Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

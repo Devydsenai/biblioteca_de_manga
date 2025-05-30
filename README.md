@@ -49,17 +49,20 @@ O projeto utiliza as seguintes dependências:
    npm install
    ```
 
-3. Inicie o servidor:
-   ```bash
-   npm start
-   ```
+3. Instalar node
 
-4. Isntala node
    ```bash
    npm init -y
    npm install express cors
-   npm install node sever.js
+   npm install node server.js
    npm install bcryptjs jsonwebtoken multer
+   npm install compression
+   ```
+
+4. Inicie o servidor
+
+   ```bash
+   npm start
    ```
 
 O servidor será iniciado e estará disponível em http://localhost:3001.
