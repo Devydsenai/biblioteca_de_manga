@@ -71,3 +71,6 @@ O servidor será iniciado e estará disponível em http://localhost:3001.
 
 - Certifique-se de que todas as dependências estejam instaladas antes de iniciar o servidor.
 - Para mais detalhes sobre a implementação, consulte os comentários no código de `server.js`.
+
+
+https://trello.com/invite/b/6830f77b5ef1e0eeea0be25b/ATTI7d8a3d3440c85e8d994ae8e65cde98df96181E1D/projeto-integrador-desenvolvimento-l
