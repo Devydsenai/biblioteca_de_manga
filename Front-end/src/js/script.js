@@ -58,10 +58,60 @@ function logout() {
     window.location.reload();
 }
 
+// Função para gerenciar mangás deletados
+function getDeletedMangas() {
+    const deletedMangas = localStorage.getItem('deletedMangas');
+    return deletedMangas ? JSON.parse(deletedMangas) : [];
+}
+
+function saveDeletedManga(mangaId) {
+    const deletedMangas = getDeletedMangas();
+    if (!deletedMangas.includes(mangaId)) {
+        deletedMangas.push(mangaId);
+        localStorage.setItem('deletedMangas', JSON.stringify(deletedMangas));
+    }
+}
+
+function hideDeletedMangas() {
+    const deletedMangas = getDeletedMangas();
+    // Esconder em todas as seções
+    const sections = ['populares', 'atualizacao', 'destaques', 'top10'];
+    sections.forEach(section => {
+        const sectionElement = document.getElementById(section);
+        if (sectionElement) {
+            deletedMangas.forEach(mangaId => {
+                const mangaElements = sectionElement.querySelectorAll(`[data-manga-id="${mangaId}"]`);
+                mangaElements.forEach(element => {
+                    element.style.display = 'none';
+                });
+            });
+        }
+    });
+}
+
+// Função para deletar um mangá
+function deleteManga(mangaId) {
+    if (confirm('Tem certeza que deseja deletar este mangá? Esta ação não pode ser desfeita.')) {
+        // Salvar o ID do mangá como deletado
+        saveDeletedManga(mangaId);
+        
+        // Esconder o mangá em todas as seções
+        const mangaElements = document.querySelectorAll(`[data-manga-id="${mangaId}"]`);
+        mangaElements.forEach(element => {
+            element.style.display = 'none';
+        });
+        
+        alert('Mangá deletado com sucesso!');
+    }
+}
+
 // Inicialização quando o DOM estiver carregado
 document.addEventListener('DOMContentLoaded', function() {
     // Verificar estado do login
     checkUserLoggedIn();
+
+    // Esconder mangás deletados
+    hideDeletedMangas();
 
     // Adicionar evento de submit ao formulário de login
     const loginForm = document.getElementById('loginForm');
