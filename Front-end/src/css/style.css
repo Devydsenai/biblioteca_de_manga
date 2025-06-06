@@ -1,0 +1,62 @@
+/* Estilos para o container do avatar e botão de sair */
+.avatar-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 5px;
+    position: relative;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.avatar-btn {
+    background: none;
+    border: none;
+    padding: 5px;
+    cursor: pointer;
+    font-size: 1.2rem;
+}
+
+.user-name {
+    font-weight: 500;
+    color: #333;
+    font-size: 1rem;
+    margin-right: 10px;
+}
+
+/* Estilos para o botão de logout */
+#logoutBtn {
+    padding: 8px 15px;
+    font-size: 1rem;
+    background-color: #dc3545 !important;
+    border-color: #dc3545 !important;
+    color: white !important;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-left: 10px;
+    display: inline-block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+#logoutBtn:hover {
+    background-color: #c82333 !important;
+    border-color: #bd2130 !important;
+    transform: scale(1.05);
+}
+
+#logoutBtn i {
+    margin-right: 5px;
+}
+
+/* Forçar visibilidade quando necessário */
+#logoutBtn[style*="display: none"] {
+    display: inline-block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+} 
