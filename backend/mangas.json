@@ -12,7 +12,7 @@
         "Aventura",
         "Fantasia"
       ],
-      "imagem": "http://localhost:3001/img/OnePiece.png",
+      "imagem": "http://localhost:3000/img/OnePiece.png",
       "sinopse": "Monkey D. Luffy é um jovem que sonha em se tornar o Rei dos Piratas. Para isso, ele parte em uma jornada para encontrar o One Piece, o maior tesouro do mundo."
     },
     {
@@ -27,7 +27,7 @@
         "Aventura",
         "Fantasia"
       ],
-      "imagem": "http://localhost:3001/img/Naruto.png",
+      "imagem": "http://localhost:3000/img/Naruto.png",
       "sinopse": "Naruto Uzumaki é um jovem ninja que sonha em se tornar o Hokage, o líder de sua vila. Para isso, ele precisa superar muitos desafios e fazer novos amigos."
     },
     {
@@ -42,7 +42,7 @@
         "Aventura",
         "Fantasia"
       ],
-      "imagem": "http://localhost:3001/img/DragonBall.png",
+      "imagem": "http://localhost:3000/img/DragonBall.png",
       "sinopse": "Goku é um guerreiro que protege a Terra de diversos perigos. Ao longo de sua jornada, ele se torna cada vez mais forte e faz amigos poderosos."
     },
     {
@@ -57,7 +57,7 @@
         "Fantasia",
         "Sobrenatural"
       ],
-      "imagem": "http://localhost:3001/img/Bleach.png",
+      "imagem": "http://localhost:3000/img/Bleach.png",
       "sinopse": "Ichigo Kurosaki é um adolescente que pode ver fantasmas. Após ganhar poderes de Shinigami, ele precisa proteger o mundo dos Hollows."
     },
     {
@@ -72,7 +72,7 @@
         "Psicológico",
         "Sobrenatural"
       ],
-      "imagem": "http://localhost:3001/img/DeathNote.png",
+      "imagem": "http://localhost:3000/img/DeathNote.png",
       "sinopse": "Light Yagami encontra um caderno que permite matar qualquer pessoa cujo nome seja escrito nele. Ele decide usar esse poder para criar um mundo sem crime."
     },
     {
@@ -87,7 +87,7 @@
         "Drama",
         "Fantasia Sombria"
       ],
-      "imagem": "http://localhost:3001/img/AttackOnTItan.png",
+      "imagem": "http://localhost:3000/img/AttackOnTItan.png",
       "sinopse": "Em um mundo onde a humanidade vive dentro de cidades cercadas por enormes muralhas para se proteger de titãs, Eren Yeager jura vingança após sua mãe ser devorada por um deles."
     },
     {
@@ -102,7 +102,7 @@
         "Fantasia",
         "Horror"
       ],
-      "imagem": "http://localhost:3001/img/JujutsuKaisen.png",
+      "imagem": "http://localhost:3000/img/JujutsuKaisen.png",
       "sinopse": "Yuji Itadori é um estudante com habilidades físicas excepcionais que se envolve com o mundo dos feiticeiros após encontrar um objeto amaldiçoado."
     },
     {
@@ -117,7 +117,7 @@
         "Fantasia",
         "Histórico"
       ],
-      "imagem": "http://localhost:3001/img/DemonSlayer.png",
+      "imagem": "http://localhost:3000/img/DemonSlayer.png",
       "sinopse": "Tanjiro Kamado se torna um caçador de demônios após sua família ser atacada e sua irmã ser transformada em um demônio."
     },
     {
@@ -132,7 +132,7 @@
         "Comédia",
         "Super-herói"
       ],
-      "imagem": "http://localhost:3001/img/MyHeroAcademia.png",
+      "imagem": "http://localhost:3000/img/MyHeroAcademia.png",
       "sinopse": "Em um mundo onde 80% da população possui superpoderes, Izuku Midoriya sonha em se tornar um herói mesmo sendo parte dos 20% sem poderes."
     },
     {
@@ -147,7 +147,7 @@
         "Horror",
         "Fantasia Sombra"
       ],
-      "imagem": "http://localhost:3001/img/ChainsawMan.png",
+      "imagem": "http://localhost:3000/img/ChainsawMan.png",
       "sinopse": "Denji é um jovem que se torna um caçador de demônios após fazer um contrato com seu demônio de estimação, Pochita."
     },
     {
@@ -162,7 +162,7 @@
         "Comédia",
         "Super-herói"
       ],
-      "imagem": "http://localhost:3001/img/OnePunchMan.png",
+      "imagem": "http://localhost:3000/img/OnePunchMan.png",
       "sinopse": "Saitama é um herói que pode derrotar qualquer oponente com apenas um soco, mas sua força o deixou entediado com a falta de desafios."
     },
     {
@@ -178,7 +178,7 @@
         "Fantasia",
         "Aventura"
       ],
-      "imagem": "http://localhost:3001/img/Konosuba.png",
+      "imagem": "http://localhost:3000/img/Konosuba.png",
       "sinopse": "Kazuma Satou é um jovem que morre e é reencarnado em um mundo de fantasia. Ele forma um grupo com uma deusa, uma maga e uma guerreira para enfrentar monstros e completar missões."
     },
     {
@@ -193,7 +193,7 @@
         "Aventura",
         "Fantasia"
       ],
-      "imagem": "http://localhost:3001/img/HunterXHunter.png",
+      "imagem": "http://localhost:3000/img/HunterXHunter.png",
       "sinopse": "Gon Freecss é um jovem que descobre que seu pai, que acreditava estar morto, é um caçador lendário. Ele decide se tornar um caçador para encontrá-lo e descobrir mais sobre sua origem."
     },
     {
@@ -209,7 +209,7 @@
         "fantasia"
       ],
       "sinopse": "Pokémon Adventures (ou Pocket Monsters SPECIAL) é o principal mangá da franquia Pokémon. Foi lançado em março de 1997 e continua sendo produzido até os dias atuais. Diferente do anime, o mangá sofre muito mais influencia dos jogos principais tendo suas séries todas intituladas com os nomes dos jogos, inclusive com destaque para os seus personagens.",
-      "imagem": "http://localhost:3001/img/1748398975358-496381015.png"
+      "imagem": "http://localhost:3000/img/1748398975358-496381015.png"
     },
     {
       "id": 1748401592225,
@@ -224,7 +224,7 @@
         "fantasia"
       ],
       "sinopse": "Pokémon Adventures (ou Pocket Monsters SPECIAL) é o principal mangá da franquia Pokémon. Foi lançado em março de 1997 e continua sendo produzido até os dias atuais. Diferente do anime, o mangá sofre muito mais influencia dos jogos principais tendo suas séries todas intituladas com os nomes dos jogos, inclusive com destaque para os seus personagens.",
-      "imagem": "http://localhost:3001/img/1748401592210-762331439.png"
+      "imagem": "http://localhost:3000/img/1748401592210-762331439.png"
     },
     {
       "id": 1748403027893,
@@ -239,7 +239,7 @@
         "fantasia"
       ],
       "sinopse": "A história terminou com o capítulo 304, após mais de seis anos de publicação, em 21 de fevereiro de 2022",
-      "imagem": "http://localhost:3001/img/1748403027836-406129032.png"
+      "imagem": "http://localhost:3000/img/1748403027836-406129032.png"
     },
     {
       "id": 1748446689665,
@@ -253,7 +253,7 @@
         "Comédia",
         "Ficção"
       ],
-      "imagem": "http://localhost:3001/img/TokyoGhoul.png",
+      "imagem": "http://localhost:3000/img/TokyoGhoul.png",
       "sinopse": "Ken Kaneki é um estudante universitário que se torna meio ghoul após um encontro fatídico. Ele precisa aprender a viver em um mundo onde humanos e ghouls coexistem."
     },
     {
@@ -284,7 +284,7 @@
         "Fantasia",
         "Aventura"
       ],
-      "imagem": "http://localhost:3001/img/Konosuba.png",
+      "imagem": "http://localhost:3000/img/Konosuba.png",
       "sinopse": "Kazuma Satou é um jovem que morre e é reencarnado em um mundo de fantasia. Ele forma um grupo com uma deusa, uma maga e uma guerreira para enfrentar monstros e completar missões."
     },
     {
@@ -299,7 +299,7 @@
         "Comédia",
         "Esportes"
       ],
-      "imagem": "http://localhost:3001/img/KurokoNoBasket.png",
+      "imagem": "http://localhost:3000/img/KurokoNoBasket.png",
       "sinopse": "A Escola Secundária Teiko dominou o basquete no Japão com sua lendária 'Geração dos Milagres', composta por cinco estrelas e um misterioso sexto homem, Tetsuya Kuroko. Agora no ensino médio, Kuroko se junta a Taiga Kagami na Seirin High, um time promissor. Juntos, eles enfrentam os antigos companheiros de Kuroko para levar Seirin ao topo do Japão."
     },
     {

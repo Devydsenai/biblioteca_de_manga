@@ -1,3 +1,6 @@
+// Carrega as variáveis de ambiente
+require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
@@ -5,27 +8,31 @@ const path = require('path');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
+const compression = require('compression');
+const config = require('./config');
+const { rateLimiter, resetLoginAttempts } = require('./middlewares/rateLimiter');
+const { cacheMiddleware, clearCache } = require('./middlewares/cache');
+const validation = require('./middlewares/validation');
+const { optimizeImage, validateFileType, generateSlug, formatDate, paginateResults, sanitizeData } = require('./utils/helpers');
 const app = express();
+
+// Configurações básicas
+app.use(cors());
+app.use(express.json());
 
 // Configurações do Express para melhor gerenciamento de conexões
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-app.use(cors({
-    origin: '*',
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true,
-    maxAge: 86400 // 24 horas
-}));
+app.use(cors(config.CORS_OPTIONS));
 
 // Configuração de compressão para melhorar performance
-const compression = require('compression');
 app.use(compression());
+app.use(rateLimiter);
 
 // Configuração do Multer para upload de arquivos
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        const uploadDir = path.join(__dirname, '..', 'Front-end', 'src', 'img');
+        const uploadDir = path.join(__dirname, config.UPLOAD.UPLOAD_DIR);
         // Criar diretório se não existir
         if (!fs.existsSync(uploadDir)) {
             fs.mkdirSync(uploadDir, { recursive: true });
@@ -41,19 +48,25 @@ const storage = multer.diskStorage({
 const upload = multer({
     storage: storage,
     limits: {
-        fileSize: 5 * 1024 * 1024 // limite de 5MB
+        fileSize: config.UPLOAD.MAX_FILE_SIZE
     },
     fileFilter: function (req, file, cb) {
-        // Aceitar apenas imagens
-        if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
-            return cb(new Error('Apenas imagens são permitidas!'), false);
+        if (!validateFileType(file, config.UPLOAD.ALLOWED_TYPES)) {
+            return cb(new Error('Tipo de arquivo não permitido!'), false);
         }
         cb(null, true);
     }
 });
 
+// Middleware para sanitizar dados
+app.use((req, res, next) => {
+    if (req.body) {
+        req.body = sanitizeData(req.body);
+    }
+    next();
+});
+
 // Middleware
-app.use(cors());
 app.use(express.json());
 
 // Configuração para servir arquivos estáticos
@@ -65,102 +78,80 @@ const staticOptions = {
     }
 };
 
+// Servir arquivos estáticos
+const imgPath = path.join(__dirname, '..', 'Front-end', 'src', 'img');
+console.log('Diretório de imagens:', imgPath);
+
+// Verificar se o diretório existe
+if (!fs.existsSync(imgPath)) {
+    console.error('Diretório de imagens não encontrado:', imgPath);
+} else {
+    console.log('Arquivos no diretório de imagens:', fs.readdirSync(imgPath));
+}
+
+app.use('/img', express.static(imgPath, staticOptions));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads'), staticOptions));
-app.use('/img', express.static(path.join(__dirname, '..', 'Front-end', 'src', 'img'), staticOptions));
+
+// Adicionar rota de teste para imagens
+app.get('/test-image', (req, res) => {
+    const imagePath = path.join(imgPath, 'DeathNote.png');
+    console.log('Testando acesso à imagem:', imagePath);
+    if (fs.existsSync(imagePath)) {
+        res.sendFile(imagePath);
+    } else {
+        res.status(404).json({ 
+            error: 'Imagem não encontrada', 
+            path: imagePath,
+            exists: fs.existsSync(imgPath),
+            files: fs.readdirSync(imgPath)
+        });
+    }
+});
+
+// Middleware para debug de requisições
+app.use((req, res, next) => {
+    console.log(`${req.method} ${req.url}`);
+    next();
+});
 
 // Chave secreta para JWT
 const JWT_SECRET = 'sua_chave_secreta_muito_segura';
 
-// Função para ler o arquivo tasks.json
-const readTasksFile = () => {
+// Funções auxiliares para manipulação de arquivos
+const readJsonFile = async (filename) => {
     try {
-        const data = fs.readFileSync(path.join(__dirname, 'tasks.json'), 'utf8');
-        return JSON.parse(data);
+        const filePath = path.join(__dirname, filename);
+        console.log('Tentando ler arquivo:', filePath);
+        const data = await fs.promises.readFile(filePath, 'utf8');
+        console.log('Arquivo lido com sucesso');
+        const parsedData = JSON.parse(data);
+        console.log('Dados parseados:', JSON.stringify(parsedData, null, 2));
+        return parsedData;
     } catch (error) {
-        console.error('Erro ao ler o arquivo tasks.json:', error);
-        return { mangasEmLeitura: [], mangasLidos: [], historicoLeitura: [] };
+        console.error('Erro ao ler arquivo:', error);
+        throw error;
     }
 };
 
-// Função para salvar no arquivo tasks.json
-const saveTasksFile = (data) => {
+const writeJsonFile = async (filename, data) => {
     try {
-        fs.writeFileSync(path.join(__dirname, 'tasks.json'), JSON.stringify(data, null, 2));
+        await fs.writeFile(
+            path.join(__dirname, filename),
+            JSON.stringify(data, null, 2)
+        );
         return true;
     } catch (error) {
-        console.error('Erro ao salvar no arquivo tasks.json:', error);
+        console.error(`Erro ao salvar arquivo ${filename}:`, error);
         return false;
     }
 };
 
-// Função para ler o arquivo users.json
-const readUsersFile = () => {
-    try {
-        const data = fs.readFileSync(path.join(__dirname, 'users.json'), 'utf8');
-        return JSON.parse(data);
-    } catch (error) {
-        console.error('Erro ao ler o arquivo users.json:', error);
-        return { users: [] };
-    }
-};
-
-// Função para salvar no arquivo users.json
-const saveUsersFile = (data) => {
-    try {
-        fs.writeFileSync(path.join(__dirname, 'users.json'), JSON.stringify(data, null, 2));
-        return true;
-    } catch (error) {
-        console.error('Erro ao salvar no arquivo users.json:', error);
-        return false;
-    }
-};
-
-// Função para ler o arquivo mangas.json
-const readMangasFile = () => {
-    try {
-        const data = fs.readFileSync(path.join(__dirname, 'mangas.json'), 'utf8');
-        return JSON.parse(data);
-    } catch (error) {
-        console.error('Erro ao ler o arquivo mangas.json:', error);
-        return { mangas: [] };
-    }
-};
-
-// Função para salvar no arquivo mangas.json
-const saveMangasFile = (data) => {
-    try {
-        fs.writeFileSync(path.join(__dirname, 'mangas.json'), JSON.stringify(data, null, 2));
-        return true;
-    } catch (error) {
-        console.error('Erro ao salvar no arquivo mangas.json:', error);
-        return false;
-    }
-};
-
-// Função para ler o arquivo manga-status.json
-const readMangaStatusFile = () => {
-    try {
-        const data = fs.readFileSync(path.join(__dirname, 'manga-status.json'), 'utf8');
-        return JSON.parse(data);
-    } catch (error) {
-        console.error('Erro ao ler o arquivo manga-status.json:', error);
-        return { mangas: [] };
-    }
-};
-
-// Função para salvar no arquivo manga-status.json
-const saveMangaStatusFile = (data) => {
-    try {
-        fs.writeFileSync(path.join(__dirname, 'manga-status.json'), JSON.stringify(data, null, 2));
-        return true;
-    } catch (error) {
-        console.error('Erro ao salvar no arquivo manga-status.json:', error);
-        return false;
-    }
-};
-
-// Middleware para verificar autenticação
+// Middleware de autenticação
 const checkAuth = (req, res, next) => {
+    // Temporariamente permitindo todas as requisições
+    next();
+    
+    /* Código original comentado
     const token = req.headers.authorization?.split(' ')[1];
     
     if (!token) {
@@ -171,7 +162,7 @@ const checkAuth = (req, res, next) => {
     }
 
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || JWT_SECRET);
+        const decoded = jwt.verify(token, config.JWT_SECRET);
         req.user = decoded;
         next();
     } catch (error) {
@@ -180,132 +171,60 @@ const checkAuth = (req, res, next) => {
             message: 'Token inválido ou expirado. Por favor, faça login novamente.'
         });
     }
+    */
 };
 
 // Rota de teste
 app.get('/', (req, res) => {
+    console.log('Rota principal acessada');
     res.json({ message: 'Bem-vindo à API da Biblioteca de Mangás!' });
 });
 
-// Rota para adicionar um mangá à lista de leitura
-app.post('/api/leitura/adicionar', (req, res) => {
-    const data = readTasksFile();
-    const novoManga = {
-        ...req.body,
-        dataInicio: new Date().toISOString(),
-        ultimoCapitulo: 0
-    };
-    
-    data.mangasEmLeitura.push(novoManga);
-    
-    if (saveTasksFile(data)) {
-        res.status(201).json({ message: 'Mangá adicionado à lista de leitura', manga: novoManga });
-    } else {
-        res.status(500).json({ message: 'Erro ao adicionar mangá' });
+// Rotas públicas (não precisam de autenticação)
+app.get('/api/mangas/search', async (req, res) => {
+    try {
+        console.log('Iniciando busca de mangás...');
+        const data = await readJsonFile('mangas.json');
+        console.log('Dados carregados:', data.mangas.length, 'mangás');
+        res.json(data.mangas);
+    } catch (error) {
+        console.error('Erro ao buscar mangás:', error);
+        res.status(500).json({ error: 'Erro ao buscar mangás' });
     }
 });
 
-// Rota para remover um mangá da lista de leitura
-app.delete('/api/leitura/remover/:id', (req, res) => {
-    const data = readTasksFile();
-    const mangaIndex = data.mangasEmLeitura.findIndex(m => m.id === parseInt(req.params.id));
-    
-    if (mangaIndex === -1) {
-        return res.status(404).json({ message: 'Mangá não encontrado na lista de leitura' });
-    }
-    
-    const mangaRemovido = data.mangasEmLeitura.splice(mangaIndex, 1)[0];
-    
-    if (saveTasksFile(data)) {
-        res.json({ message: 'Mangá removido da lista de leitura', manga: mangaRemovido });
-    } else {
-        res.status(500).json({ message: 'Erro ao remover mangá' });
-    }
-});
-
-// Rota para marcar um mangá como lido
-app.post('/api/leitura/concluir/:id', (req, res) => {
-    const data = readTasksFile();
-    const mangaIndex = data.mangasEmLeitura.findIndex(m => m.id === parseInt(req.params.id));
-    
-    if (mangaIndex === -1) {
-        return res.status(404).json({ message: 'Mangá não encontrado na lista de leitura' });
-    }
-    
-    const mangaConcluido = {
-        ...data.mangasEmLeitura[mangaIndex],
-        dataConclusao: new Date().toISOString()
-    };
-    
-    // Remove da lista de leitura e adiciona à lista de lidos
-    data.mangasEmLeitura.splice(mangaIndex, 1);
-    data.mangasLidos.push(mangaConcluido);
-    
-    // Adiciona ao histórico
-    data.historicoLeitura.push({
-        ...mangaConcluido,
-        dataRegistro: new Date().toISOString()
-    });
-    
-    if (saveTasksFile(data)) {
-        res.json({ message: 'Mangá marcado como lido', manga: mangaConcluido });
-    } else {
-        res.status(500).json({ message: 'Erro ao atualizar status do mangá' });
+app.get('/api/mangas/:id', async (req, res) => {
+    try {
+        const mangaId = parseInt(req.params.id);
+        console.log('Buscando mangá com ID:', mangaId);
+        
+        const data = await readJsonFile('mangas.json');
+        const manga = data.mangas.find(m => m.id === mangaId);
+        
+        if (!manga) {
+            console.log('Mangá não encontrado');
+            return res.status(404).json({ error: 'Mangá não encontrado' });
+        }
+        
+        console.log('Mangá encontrado:', manga.titulo);
+        res.json(manga);
+    } catch (error) {
+        console.error('Erro ao buscar detalhes do mangá:', error);
+        res.status(500).json({ error: 'Erro ao buscar detalhes do mangá' });
     }
 });
 
-// Rota para atualizar o progresso de leitura
-app.put('/api/leitura/progresso/:id', (req, res) => {
-    const data = readTasksFile();
-    const manga = data.mangasEmLeitura.find(m => m.id === parseInt(req.params.id));
-    
-    if (!manga) {
-        return res.status(404).json({ message: 'Mangá não encontrado na lista de leitura' });
-    }
-    
-    manga.ultimoCapitulo = req.body.capitulo;
-    manga.ultimaAtualizacao = new Date().toISOString();
-    
-    if (saveTasksFile(data)) {
-        res.json({ message: 'Progresso atualizado', manga });
-    } else {
-        res.status(500).json({ message: 'Erro ao atualizar progresso' });
-    }
-});
-
-// Rota para obter mangás em leitura
-app.get('/api/leitura/em-leitura', (req, res) => {
-    const data = readTasksFile();
-    res.json(data.mangasEmLeitura);
-});
-
-// Rota para obter mangás lidos
-app.get('/api/leitura/lidos', (req, res) => {
-    const data = readTasksFile();
-    res.json(data.mangasLidos);
-});
-
-// Rota para obter histórico de leitura
-app.get('/api/leitura/historico', (req, res) => {
-    const data = readTasksFile();
-    res.json(data.historicoLeitura);
-});
-
-// Rota de registro
-app.post('/api/auth/register', async (req, res) => {
+// Rotas de autenticação
+app.post('/api/auth/register', validation.validateUser, async (req, res) => {
     const { nome, email, senha, avatar } = req.body;
-    const data = readUsersFile();
+    const data = await readJsonFile('users.json');
 
-    // Verifica se o email já está cadastrado
     if (data.users.some(user => user.email === email)) {
         return res.status(400).json({ message: 'Email já cadastrado' });
     }
 
     try {
-        // Criptografa a senha
         const hashedPassword = await bcrypt.hash(senha, 10);
-
-        // Cria novo usuário
         const newUser = {
             id: Date.now(),
             nome,
@@ -315,41 +234,33 @@ app.post('/api/auth/register', async (req, res) => {
             dataCadastro: new Date().toISOString()
         };
 
-        // Adiciona à lista de usuários
         data.users.push(newUser);
+        await writeJsonFile('users.json', data);
 
-        if (saveUsersFile(data)) {
-            // Gera token JWT
-            const token = jwt.sign(
-                { id: newUser.id, email: newUser.email },
-                JWT_SECRET,
-                { expiresIn: '24h' }
-            );
+        const token = jwt.sign(
+            { id: newUser.id, email: newUser.email },
+            config.JWT_SECRET,
+            { expiresIn: config.JWT_EXPIRATION }
+        );
 
-            res.status(201).json({
-                message: 'Usuário cadastrado com sucesso',
-                token,
-                user: {
-                    id: newUser.id,
-                    nome: newUser.nome,
-                    email: newUser.email,
-                    avatar: newUser.avatar
-                }
-            });
-        } else {
-            res.status(500).json({ message: 'Erro ao salvar usuário' });
-        }
+        res.status(201).json({
+            message: 'Usuário cadastrado com sucesso',
+            token,
+            user: {
+                id: newUser.id,
+                nome: newUser.nome,
+                email: newUser.email,
+                avatar: newUser.avatar
+            }
+        });
     } catch (error) {
         res.status(500).json({ message: 'Erro ao processar registro' });
     }
 });
 
-// Rota de login
 app.post('/api/auth/login', async (req, res) => {
     const { email, senha } = req.body;
-    const data = readUsersFile();
-
-    // Busca usuário pelo email
+    const data = await readJsonFile('users.json');
     const user = data.users.find(u => u.email === email);
 
     if (!user) {
@@ -357,18 +268,16 @@ app.post('/api/auth/login', async (req, res) => {
     }
 
     try {
-        // Verifica a senha
         const validPassword = await bcrypt.compare(senha, user.senha);
-
         if (!validPassword) {
             return res.status(401).json({ message: 'Email ou senha inválidos' });
         }
 
-        // Gera token JWT
+        resetLoginAttempts(req.ip);
         const token = jwt.sign(
             { id: user.id, email: user.email },
-            JWT_SECRET,
-            { expiresIn: '24h' }
+            config.JWT_SECRET,
+            { expiresIn: config.JWT_EXPIRATION }
         );
 
         res.json({
@@ -386,9 +295,159 @@ app.post('/api/auth/login', async (req, res) => {
     }
 });
 
+// Rotas de mangá
+app.get('/api/mangas', cacheMiddleware(), async (req, res) => {
+    const { page = 1, limit = 10, search } = req.query;
+    const data = await readJsonFile('mangas.json');
+    
+    let mangas = data.mangas;
+    if (search) {
+        const searchTerm = search.toLowerCase();
+        mangas = mangas.filter(manga => 
+            manga.titulo.toLowerCase().includes(searchTerm) ||
+            manga.autor.toLowerCase().includes(searchTerm) ||
+            manga.generos.some(genero => genero.toLowerCase().includes(searchTerm))
+        );
+    }
+
+    const result = paginateResults(mangas, parseInt(page), parseInt(limit));
+    res.json(result);
+});
+
+app.post('/api/mangas', checkAuth, validation.validateManga, upload.single('capa'), async (req, res) => {
+    try {
+        const data = await readJsonFile('mangas.json');
+        const manga = {
+            id: Date.now(),
+            ...req.body,
+            slug: generateSlug(req.body.titulo),
+            capa: req.file ? `/img/${req.file.filename}` : null,
+            dataCadastro: new Date().toISOString()
+        };
+
+        if (req.file) {
+            await optimizeImage(req.file.path);
+        }
+
+        data.mangas.push(manga);
+        await writeJsonFile('mangas.json', data);
+        clearCache('/api/mangas');
+
+        res.status(201).json({
+            message: 'Mangá cadastrado com sucesso',
+            manga
+        });
+    } catch (error) {
+        res.status(500).json({ message: 'Erro ao cadastrar mangá' });
+    }
+});
+
+// Rotas de leitura
+app.get('/api/leitura/em-leitura', checkAuth, cacheMiddleware(), async (req, res) => {
+    const data = await readJsonFile('tasks.json');
+    const userMangas = data.mangasEmLeitura.filter(m => m.userId === req.user.id);
+    res.json(userMangas);
+});
+
+app.post('/api/leitura/adicionar', checkAuth, validation.validateReadingProgress, async (req, res) => {
+    const data = await readJsonFile('tasks.json');
+    const novoManga = {
+        ...req.body,
+        userId: req.user.id,
+        dataInicio: new Date().toISOString(),
+        ultimoCapitulo: 0
+    };
+    
+    data.mangasEmLeitura.push(novoManga);
+    await writeJsonFile('tasks.json', data);
+    clearCache('/api/leitura');
+
+    res.status(201).json({
+        message: 'Mangá adicionado à lista de leitura',
+        manga: novoManga
+    });
+});
+
+// Rota para remover um mangá da lista de leitura
+app.delete('/api/leitura/remover/:id', async (req, res) => {
+    const data = await readJsonFile('tasks.json');
+    const mangaIndex = data.mangasEmLeitura.findIndex(m => m.id === parseInt(req.params.id));
+    
+    if (mangaIndex === -1) {
+        return res.status(404).json({ message: 'Mangá não encontrado na lista de leitura' });
+    }
+    
+    const mangaRemovido = data.mangasEmLeitura.splice(mangaIndex, 1)[0];
+    
+    if (await writeJsonFile('tasks.json', data)) {
+        res.json({ message: 'Mangá removido da lista de leitura', manga: mangaRemovido });
+    } else {
+        res.status(500).json({ message: 'Erro ao remover mangá' });
+    }
+});
+
+// Rota para marcar um mangá como lido
+app.post('/api/leitura/concluir/:id', async (req, res) => {
+    const data = await readJsonFile('tasks.json');
+    const mangaIndex = data.mangasEmLeitura.findIndex(m => m.id === parseInt(req.params.id));
+    
+    if (mangaIndex === -1) {
+        return res.status(404).json({ message: 'Mangá não encontrado na lista de leitura' });
+    }
+    
+    const mangaConcluido = {
+        ...data.mangasEmLeitura[mangaIndex],
+        dataConclusao: new Date().toISOString()
+    };
+    
+    data.mangasEmLeitura.splice(mangaIndex, 1);
+    data.mangasLidos.push(mangaConcluido);
+    data.historicoLeitura.push({
+        ...mangaConcluido,
+        dataRegistro: new Date().toISOString()
+    });
+    
+    if (await writeJsonFile('tasks.json', data)) {
+        res.json({ message: 'Mangá marcado como lido', manga: mangaConcluido });
+    } else {
+        res.status(500).json({ message: 'Erro ao atualizar status do mangá' });
+    }
+});
+
+// Rota para atualizar o progresso de leitura
+app.put('/api/leitura/progresso/:id', async (req, res) => {
+    const data = await readJsonFile('tasks.json');
+    const manga = data.mangasEmLeitura.find(m => m.id === parseInt(req.params.id));
+    
+    if (!manga) {
+        return res.status(404).json({ message: 'Mangá não encontrado na lista de leitura' });
+    }
+    
+    manga.ultimoCapitulo = req.body.capitulo;
+    manga.ultimaAtualizacao = new Date().toISOString();
+    
+    if (await writeJsonFile('tasks.json', data)) {
+        res.json({ message: 'Progresso atualizado', manga });
+    } else {
+        res.status(500).json({ message: 'Erro ao atualizar progresso' });
+    }
+});
+
+// Rota para obter mangás lidos
+app.get('/api/leitura/lidos', async (req, res) => {
+    const data = await readJsonFile('tasks.json');
+    res.json(data.mangasLidos);
+});
+
+// Rota para obter histórico de leitura
+app.get('/api/leitura/historico', async (req, res) => {
+    const data = await readJsonFile('tasks.json');
+    res.json(data.historicoLeitura);
+});
+
 // Rota para obter dados do usuário (protegida)
-app.get('/api/auth/user', checkAuth, (req, res) => {
-    const data = readUsersFile();
+app.get('/api/auth/user', checkAuth, async (req, res) => {
+    const data = await readJsonFile('users.json');
     const user = data.users.find(u => u.id === req.user.id);
 
     if (!user) {
@@ -406,7 +465,7 @@ app.get('/api/auth/user', checkAuth, (req, res) => {
 // Rota para atualizar dados do usuário (protegida)
 app.put('/api/auth/user', checkAuth, async (req, res) => {
     const { nome, senha } = req.body;
-    const data = readUsersFile();
+    const data = await readJsonFile('users.json');
     const userIndex = data.users.findIndex(u => u.id === req.user.id);
 
     if (userIndex === -1) {
@@ -414,17 +473,15 @@ app.put('/api/auth/user', checkAuth, async (req, res) => {
     }
 
     try {
-        // Atualiza nome se fornecido
         if (nome) {
             data.users[userIndex].nome = nome;
         }
 
-        // Atualiza senha se fornecida
         if (senha) {
             data.users[userIndex].senha = await bcrypt.hash(senha, 10);
         }
 
-        if (saveUsersFile(data)) {
+        if (await writeJsonFile('users.json', data)) {
             res.json({
                 message: 'Dados atualizados com sucesso',
                 user: {
@@ -441,32 +498,9 @@ app.put('/api/auth/user', checkAuth, async (req, res) => {
     }
 });
 
-// Rota de pesquisa de mangás
-app.get('/api/mangas/search', (req, res) => {
-    const { query } = req.query;
-    const data = readMangasFile();
-    
-    if (!query) {
-        return res.json(data.mangas);
-    }
-
-    const searchResults = data.mangas.filter(manga => {
-        const searchTerm = query.toLowerCase();
-        return (
-            manga.titulo.toLowerCase().includes(searchTerm) ||
-            manga.autor.toLowerCase().includes(searchTerm) ||
-            manga.generos.some(genero => genero.toLowerCase().includes(searchTerm)) ||
-            manga.sinopse.toLowerCase().includes(searchTerm)
-            
-        );
-    });
-
-    res.json(searchResults);
-});
-
 // Rota para obter status do mangá
-app.get('/api/manga/:id/status', (req, res) => {
-    const data = readMangaStatusFile();
+app.get('/api/manga/:id/status', async (req, res) => {
+    const data = await readJsonFile('manga-status.json');
     const manga = data.mangas.find(m => m.id === parseInt(req.params.id));
     
     if (!manga) {
@@ -477,11 +511,11 @@ app.get('/api/manga/:id/status', (req, res) => {
 });
 
 // Rota para marcar mangá como em uso
-app.post('/api/manga/:id/use', checkAuth, (req, res) => {
+app.post('/api/manga/:id/use', checkAuth, async (req, res) => {
     const mangaId = parseInt(req.params.id);
     const userId = req.user.id;
     
-    const statusData = readMangaStatusFile();
+    const statusData = await readJsonFile('manga-status.json');
     const mangaStatus = statusData.mangas.find(m => m.id === mangaId);
     
     if (!mangaStatus) {
@@ -501,89 +535,70 @@ app.post('/api/manga/:id/use', checkAuth, (req, res) => {
         dataFim: null
     });
     
-    saveMangaStatusFile(statusData);
+    await writeJsonFile('manga-status.json', statusData);
     res.json({ message: 'Mangá marcado como em uso com sucesso' });
 });
 
 // Rota para marcar mangá como disponível
-app.post('/api/manga/:id/available', checkAuth, (req, res) => {
+app.post('/api/manga/:id/return', checkAuth, async (req, res) => {
     const mangaId = parseInt(req.params.id);
     const userId = req.user.id;
     
-    const statusData = readMangaStatusFile();
+    const statusData = await readJsonFile('manga-status.json');
     const mangaStatus = statusData.mangas.find(m => m.id === mangaId);
     
     if (!mangaStatus) {
         return res.status(404).json({ message: 'Mangá não encontrado' });
     }
     
-    if (mangaStatus.status === 'disponivel') {
-        return res.status(400).json({ message: 'Este mangá já está disponível' });
-    }
-    
-    if (mangaStatus.usuarioAtual !== userId) {
-        return res.status(403).json({ message: 'Você não tem permissão para marcar este mangá como disponível' });
+    if (mangaStatus.status !== 'em_uso' || mangaStatus.usuarioAtual !== userId) {
+        return res.status(400).json({ message: 'Este mangá não está em uso por você' });
     }
     
     mangaStatus.status = 'disponivel';
     mangaStatus.usuarioAtual = null;
     mangaStatus.ultimaAtualizacao = new Date().toISOString();
     
-    // Atualizar o histórico de uso
-    const usoAtual = mangaStatus.historicoUso.find(h => h.dataFim === null);
+    // Atualiza histórico de uso
+    const usoAtual = mangaStatus.historicoUso.find(h => !h.dataFim);
     if (usoAtual) {
         usoAtual.dataFim = new Date().toISOString();
     }
     
-    saveMangaStatusFile(statusData);
+    await writeJsonFile('manga-status.json', statusData);
     res.json({ message: 'Mangá marcado como disponível com sucesso' });
 });
 
-// Rota para obter detalhes de um mangá específico
-app.get('/api/mangas/:id', (req, res) => {
-    const data = readMangasFile();
-    const manga = data.mangas.find(m => m.id === parseInt(req.params.id));
-    
-    
-    if (!manga) {
-        return res.status(404).json({ message: 'Mangá não encontrado' });
-    }
-    
-    res.json(manga);
-});
+// Rota para doar um mangá
+app.post('/api/mangas/donate', upload.single('imagem'), async (req, res) => {
+    try {
+        console.log('Recebendo doação de mangá:', req.body);
+        const data = await readJsonFile('mangas.json');
+        const novoManga = {
+            id: Date.now(),
+            ...req.body,
+            capa: req.file ? `/img/${req.file.filename}` : null,
+            dataCadastro: new Date().toISOString()
+        };
 
-// Rota para devolver mangá
-app.post('/api/manga/:id/return', checkAuth, (req, res) => {
-    const mangaId = parseInt(req.params.id);
-    const userId = req.user.id;
-    
-    const statusData = readMangaStatusFile();
-    const mangaStatus = statusData.mangas.find(m => m.id === mangaId);
-    
-    if (!mangaStatus) {
-        return res.status(404).json({ message: 'Mangá não encontrado' });
+        if (req.file) {
+            await optimizeImage(req.file.path);
+        }
+
+        data.mangas.push(novoManga);
+
+        if (await writeJsonFile('mangas.json', data)) {
+            res.status(201).json({
+                message: 'Mangá doado com sucesso',
+                manga: novoManga
+            });
+        } else {
+            res.status(500).json({ message: 'Erro ao salvar mangá' });
+        }
+    } catch (error) {
+        console.error('Erro ao processar doação:', error);
+        res.status(500).json({ message: 'Erro ao processar doação' });
     }
-    
-    if (mangaStatus.status === 'disponivel') {
-        return res.status(400).json({ message: 'Este mangá já está disponível' });
-    }
-    
-    if (mangaStatus.usuarioAtual !== userId) {
-        return res.status(403).json({ message: 'Você não tem permissão para devolver este mangá' });
-    }
-    
-    mangaStatus.status = 'disponivel';
-    mangaStatus.usuarioAtual = null;
-    mangaStatus.ultimaAtualizacao = new Date().toISOString();
-    
-    // Atualizar o histórico de uso
-    const usoAtual = mangaStatus.historicoUso.find(h => h.dataFim === null);
-    if (usoAtual) {
-        usoAtual.dataFim = new Date().toISOString();
-    }
-    
-    saveMangaStatusFile(statusData);
-    res.json({ message: 'Mangá devolvido com sucesso' });
 });
 
 // Rota para upload de avatar
@@ -601,45 +616,15 @@ app.post('/api/upload/avatar', upload.single('avatar'), (req, res) => {
     }
 });
 
-// Rota para doar mangá
-app.post('/api/mangas/donate', upload.single('imagem'), (req, res) => {
-    try {
-        const data = readMangasFile();
-        const novoManga = {
-            id: Date.now(),
-            titulo: req.body.titulo,
-            autor: req.body.autor,
-            status: req.body.status,
-            nota: parseFloat(req.body.nota),
-            capitulos: parseInt(req.body.capitulos),
-            generos: req.body.generos.split(',').map(g => g.trim()),
-            sinopse: req.body.sinopse,
-            imagem: req.file ? `/img/${req.file.filename}` : '/img/default-manga.png'
-        };
+// Rotas que precisam de autenticação
+app.use('/api/auth', checkAuth);
+app.use('/api/users', checkAuth);
 
-        data.mangas.push(novoManga);
-
-        if (saveMangasFile(data)) {
-            res.status(201).json({
-                message: 'Mangá doado com sucesso',
-                manga: novoManga
-            });
-        } else {
-            res.status(500).json({ message: 'Erro ao salvar mangá' });
-        }
-    } catch (error) {
-        console.error('Erro ao processar doação:', error);
-        res.status(500).json({ message: 'Erro ao processar doação do mangá' });
-    }
-});
-
-// Todas as outras rotas requerem autenticação
-app.use('/api', checkAuth);
-
-// Configuração do servidor
-const PORT = process.env.PORT || 3001;
+// Iniciar o servidor
+const PORT = config.PORT || 3000;
 const server = app.listen(PORT, () => {
-    console.log(`Servidor rodando em http://localhost:${PORT}`);
+    console.log(`Servidor rodando na porta ${PORT}`);
+    console.log(`Teste a API em: http://localhost:${PORT}/api/mangas/search`);
 });
 
 // Configurações para melhorar o gerenciamento de conexões

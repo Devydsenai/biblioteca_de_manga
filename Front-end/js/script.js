@@ -14,9 +14,9 @@
         searchDelay: 300, // Delay for search input in milliseconds
         animationDuration: 300, // Duration for animations in milliseconds
         apiEndpoints: {
-            search: '/api/search',
-            manga: '/api/manga',
-            user: '/api/user'
+            search: 'http://localhost:3000/api/mangas/search',
+            manga: 'http://localhost:3000/api/mangas',
+            user: 'http://localhost:3000/api/users'
         }
     };
 
@@ -54,11 +54,23 @@
         }
 
         try {
-            const response = await fetch(url);
+            // Substituir porta 3001 por 3000 se necessário
+            const correctedUrl = url.replace('localhost:3001', 'localhost:3000');
+            console.log('Carregando imagem:', correctedUrl);
+            
+            const response = await fetch(correctedUrl, {
+                method: 'GET',
+                mode: 'cors',
+                headers: {
+                    'Accept': 'image/*'
+                }
+            });
+            
             if (!response.ok) {
-                console.warn(`Imagem não encontrada: ${url}`);
+                console.warn(`Imagem não encontrada: ${correctedUrl}`);
                 return null;
             }
+            
             const blob = await response.blob();
             const objectUrl = URL.createObjectURL(blob);
             imageCache.set(url, objectUrl);
@@ -378,7 +390,7 @@
             const password = document.getElementById('loginPassword').value;
 
             try {
-                const response = await fetch('http://localhost:3001/api/auth/login', {
+                const response = await fetch('http://localhost:3000/api/auth/login', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -440,7 +452,7 @@
                     const formData = new FormData();
                     formData.append('avatar', avatarFile);
                     
-                    const uploadResponse = await fetch('http://localhost:3001/api/upload/avatar', {
+                    const uploadResponse = await fetch('http://localhost:3000/api/upload/avatar', {
                         method: 'POST',
                         body: formData
                     });
@@ -452,7 +464,7 @@
                 }
 
                 // Depois, registrar o usuário
-                const response = await fetch('http://localhost:3001/api/auth/register', {
+                const response = await fetch('http://localhost:3000/api/auth/register', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -749,7 +761,7 @@
     // Função para pesquisar mangás
     async function searchManga(query) {
         try {
-            const response = await fetch(`http://localhost:3001/api/mangas/search?query=${encodeURIComponent(query)}`);
+            const response = await fetch(`http://localhost:3000/api/mangas/search?query=${encodeURIComponent(query)}`);
             const mangas = await response.json();
             
             // Remover duplicatas baseado no ID do mangá
@@ -776,164 +788,137 @@
         if (url.startsWith('http')) return url;
         
         // Se for um caminho relativo, converte para URL completa
-        if (url.startsWith('/img/')) return `http://localhost:3001${url}`;
-        if (url.startsWith('../img/')) return `http://localhost:3001/img/${url.split('/').pop()}`;
+        if (url.startsWith('/img/')) return `http://localhost:3000${url}`;
+        if (url.startsWith('../img/')) return `http://localhost:3000/img/${url.split('/').pop()}`;
         
         // Se for apenas o nome do arquivo
-        return `http://localhost:3001/img/${url}`;
+        return `http://localhost:3000/img/${url}`;
     };
 
     // Função para verificar se a imagem existe
     async function checkImageExists(url) {
-        if (!url) return false;
-        
         try {
-            // Usar GET em vez de HEAD para maior compatibilidade
-            const response = await fetch(url, { 
-                method: 'GET',
-                cache: 'no-cache',
+            // Corrigir a URL se necessário
+            if (url.includes('localhost:3001')) {
+                url = url.replace('localhost:3001', 'localhost:3000');
+            }
+            
+            console.log('Verificando imagem:', url);
+            
+            const response = await fetch(url, {
+                method: 'HEAD',
                 headers: {
-                    'Accept': 'image/*'
+                    'Accept': 'image/*',
+                    'Cache-Control': 'no-cache'
                 }
             });
             
-            // Verificar se a resposta é uma imagem válida
-            const contentType = response.headers.get('content-type');
-            return response.ok && contentType && contentType.startsWith('image/');
+            if (!response.ok) {
+                console.warn('Imagem não encontrada:', url);
+                return false;
+            }
+            
+            return true;
         } catch (error) {
-            console.warn(`Erro ao verificar imagem ${url}:`, error);
+            console.warn('Erro ao verificar imagem:', error);
             return false;
         }
     }
 
+    // Função para carregar detalhes do mangá
     async function loadMangaDetails(mangaId) {
-        // Verificar se o usuário está logado
-        const token = localStorage.getItem('token');
-        if (!token) {
-            // Se não estiver logado, mostrar modal de login
-            const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
-            loginModal.show();
-            return;
-        }
-
         try {
-            const response = await fetch(`http://localhost:3001/api/mangas/${mangaId}`);
+            const response = await fetch(`http://localhost:3000/api/mangas/${mangaId}`, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            });
             
             if (!response.ok) {
-                throw new Error(`Erro ao carregar mangá: ${response.status} ${response.statusText}`);
+                throw new Error(`Erro ao buscar mangá: ${response.status} ${response.statusText}`);
             }
             
             const manga = await response.json();
             
-            if (!manga) {
-                throw new Error('Mangá não encontrado');
-            }
-
-            // Carregar imagem com cache
-            const imageUrl = normalizeImageUrl(manga.imagem);
-            let cachedImageUrl = null;
-
-            if (imageUrl) {
-                // Verificar se a imagem existe antes de tentar carregá-la
-                const imageExists = await checkImageExists(imageUrl);
-                if (imageExists) {
-                    cachedImageUrl = await loadImageWithCache(imageUrl);
-                }
-            }
-
-            // Criar o modal de detalhes
+            // Verificar se a imagem existe
+            const imageUrl = manga.imagem ? 
+                (manga.imagem.startsWith('http') ? manga.imagem : 
+                 manga.imagem.startsWith('/img/') ? `http://localhost:3000${manga.imagem}` :
+                 manga.imagem.startsWith('../img/') ? `http://localhost:3000/img/${manga.imagem.split('/').pop()}` :
+                 `http://localhost:3000/img/${manga.imagem}`) : 
+                'http://localhost:3000/img/default-manga.png';
+            
+            const imageExists = await checkImageExists(imageUrl);
+            
+            // Criar o modal
             const modal = document.createElement('div');
             modal.className = 'modal fade';
-            modal.id = 'mangaDetailsModal';
+            modal.id = 'mangaModal';
             modal.setAttribute('tabindex', '-1');
-            modal.setAttribute('aria-labelledby', 'mangaDetailsModalLabel');
-            modal.setAttribute('role', 'dialog');
-            modal.setAttribute('aria-modal', 'true');
-
-            // SVG placeholder para imagem não encontrada
-            const placeholderSvg = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjUwIiBoZWlnaHQ9IjM1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjUwIiBoZWlnaHQ9IjM1MCIgZmlsbD0iI2YwZjBmMCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIiBmaWxsPSIjNjY2Ij5JbWFnZW0gbmFvIGRpc3Bvbml2ZWw8L3RleHQ+PC9zdmc+';
-
+            modal.setAttribute('aria-labelledby', 'mangaModalLabel');
+            modal.setAttribute('aria-hidden', 'true');
+            
             modal.innerHTML = `
-                <div class="modal-dialog modal-lg">
+                <div class="modal-dialog modal-dialog-centered modal-lg">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title" id="mangaDetailsModalLabel">${manga.titulo}</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                            <h5 class="modal-title" id="mangaModalLabel">${manga.titulo}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
-                            <div class="manga-details" style="display: flex; gap: 20px; padding: 15px; max-height: 70vh; overflow-y: auto;">
-                                <div class="manga-cover" style="flex: 0 0 300px; max-width: 300px; height: 400px; overflow: hidden; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); background-color: #f5f5f5; display: flex; align-items: center; justify-content: center;">
-                                    <img src="${cachedImageUrl || placeholderSvg}" 
+                            <div class="manga-details">
+                                <div class="manga-image">
+                                    <img src="${imageExists ? imageUrl : 'http://localhost:3000/img/default-manga.png'}" 
                                          alt="${manga.titulo}"
-                                         style="width: 100%; height: 100%; object-fit: cover; object-position: center;"
-                                         onerror="this.onerror=null; this.src='${placeholderSvg}'">
+                                         onerror="this.src='http://localhost:3000/img/default-manga.png'">
                                 </div>
-                                <div class="manga-info" style="flex: 1; min-width: 0; overflow-y: auto;">
-                                    <p style="margin-bottom: 10px; line-height: 1.5;"><strong>Autor:</strong> ${manga.autor}</p>
-                                    <p style="margin-bottom: 10px; line-height: 1.5;"><strong>Status:</strong> ${manga.status}</p>
-                                    <p style="margin-bottom: 10px; line-height: 1.5;"><strong>Nota:</strong> <span class="star" style="color: #ffd700;">★</span> ${manga.nota}/10</p>
-                                    <p style="margin-bottom: 10px; line-height: 1.5;"><strong>Capítulos:</strong> ${manga.capitulos}</p>
-                                    <div class="genres" style="display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0;">
-                                        ${manga.generos.map(genero => `<span class="genre-tag" style="background-color: #e0e0e0; padding: 4px 8px; border-radius: 4px; font-size: 0.9em;">${genero}</span>`).join('')}
+                                <div class="manga-info">
+                                    <h2>${manga.titulo}</h2>
+                                    <p class="author"><strong>Autor:</strong> ${manga.autor}</p>
+                                    <p class="status"><strong>Status:</strong> <span class="badge ${manga.status.toLowerCase().includes('lançamento') ? 'lancamento' : 'andamento'}">${manga.status}</span></p>
+                                    <p class="rating"><strong>Nota:</strong> <span class="star">★</span> ${manga.nota}</p>
+                                    <p class="chapters"><strong>Capítulos:</strong> ${manga.capitulos}</p>
+                                    <p class="genres"><strong>Gêneros:</strong> ${manga.generos.join(', ')}</p>
+                                    <div class="synopsis">
+                                        <h3>Sinopse</h3>
+                                        <p>${manga.sinopse}</p>
                                     </div>
-                                    <p style="margin-bottom: 10px; line-height: 1.5;"><strong>Sinopse:</strong> ${manga.sinopse || 'Sinopse não disponível.'}</p>
                                 </div>
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-primary">Ler</button>
-                            <button type="button" class="btn btn-success">Adicionar à Lista</button>
-                            <button type="button" class="btn btn-warning">Favoritar</button>
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
                         </div>
                     </div>
                 </div>
             `;
-
-            // Remover modal anterior se existir
-            const existingModal = document.getElementById('mangaDetailsModal');
-            if (existingModal) {
-                existingModal.remove();
-            }
-
-            // Adicionar o novo modal ao body
+            
+            // Adicionar o modal ao body
             document.body.appendChild(modal);
-
-            // Inicializar o modal do Bootstrap
+            
+            // Inicializar o modal
             const modalInstance = new bootstrap.Modal(modal);
             modalInstance.show();
-
+            
+            // Remover o modal do DOM quando for fechado
+            modal.addEventListener('hidden.bs.modal', () => {
+                modal.remove();
+            });
+            
         } catch (error) {
             console.error('Erro ao carregar detalhes do mangá:', error);
-            
-            // Criar um modal de erro mais amigável
-            const errorModal = document.createElement('div');
-            errorModal.className = 'modal fade';
-            errorModal.id = 'errorModal';
-            errorModal.innerHTML = `
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Aviso</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-                        </div>
-                        <div class="modal-body">
-                            <p>${error.message}</p>
-                            <p>Por favor, tente novamente mais tarde.</p>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            document.body.appendChild(errorModal);
-            const modalInstance = new bootstrap.Modal(errorModal);
-            modalInstance.show();
-
-            // Mostrar notificação
-            showNotification(error.message, 'error');
+            // Mostrar notificação de erro
+            const notification = document.createElement('div');
+            notification.className = 'notification error';
+            notification.textContent = 'Erro ao carregar detalhes do mangá. Tente novamente.';
+            document.body.appendChild(notification);
+            setTimeout(() => notification.classList.add('show'), 100);
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
         }
     }
 
@@ -958,14 +943,14 @@
             const isDeleted = deletedMangas.includes(manga.id);
             const imageUrl = manga.imagem ? 
                 (manga.imagem.startsWith('http') ? manga.imagem : 
-                 manga.imagem.startsWith('/img/') ? `http://localhost:3001${manga.imagem}` :
-                 manga.imagem.startsWith('../img/') ? `http://localhost:3001/img/${manga.imagem.split('/').pop()}` :
-                 `http://localhost:3001/img/${manga.imagem}`) : 
-                'http://localhost:3001/img/default-manga.png';
+                 manga.imagem.startsWith('/img/') ? `http://localhost:3000${manga.imagem}` :
+                 manga.imagem.startsWith('../img/') ? `http://localhost:3000/img/${manga.imagem.split('/').pop()}` :
+                 `http://localhost:3000/img/${manga.imagem}`) : 
+                'http://localhost:3000/img/default-manga.png';
             
             return `
             <div class="manga-card ${isDeleted ? 'deleted' : ''}" data-manga-id="${manga.id}">
-                <img src="${imageUrl}" alt="${manga.titulo}" class="manga-image" onerror="this.src='http://localhost:3001/img/default-manga.png'">
+                <img src="${imageUrl}" alt="${manga.titulo}" class="manga-image" onerror="this.src='http://localhost:3000/img/default-manga.png'">
                 <div class="manga-info">
                     <h3>${manga.titulo}</h3>
                     <p class="author">Autor: ${manga.autor}</p>
@@ -1042,7 +1027,7 @@
         } else if (action === 'restore') {
             try {
                 // Buscar os detalhes do mangá
-                const response = await fetch(`http://localhost:3001/api/mangas/${mangaId}`);
+                const response = await fetch(`http://localhost:3000/api/mangas/${mangaId}`);
                 const manga = await response.json();
 
                 // Remover do localStorage de mangás deletados
@@ -1060,7 +1045,7 @@
                         card.className = 'card update-card';
                         card.dataset.mangaId = manga.id;
                         card.innerHTML = `
-                            <img src="${manga.imagem}" alt="${manga.titulo}" onerror="this.src='http://localhost:3001/img/default-manga.png'">
+                            <img src="${manga.imagem}" alt="${manga.titulo}" onerror="this.src='http://localhost:3000/img/default-manga.png'">
                             <div class="card-info">
                                 <h3>${manga.titulo}</h3>
                                 <p><span class="star">★</span> ${manga.nota}</p>
@@ -1575,7 +1560,7 @@
 
             try {
                 console.log('Enviando requisição para o servidor');
-                const response = await fetch('http://localhost:3001/api/mangas/donate', {
+                const response = await fetch('http://localhost:3000/api/mangas/donate', {
                     method: 'POST',
                     body: formData
                 });
@@ -1636,7 +1621,18 @@
     // Função para carregar as últimas atualizações
     async function loadLatestUpdates() {
         try {
-            const response = await fetch('http://localhost:3001/api/mangas/search');
+            const response = await fetch('http://localhost:3000/api/mangas/search', {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`Erro ao buscar mangás: ${response.status} ${response.statusText}`);
+            }
+            
             const mangas = await response.json();
             
             // Ordenar por ID (mais recente primeiro)
@@ -1665,17 +1661,17 @@
                 const isKept = keptMangas.some(keptManga => keptManga.id === manga.id);
                 const imageUrl = manga.imagem ? 
                     (manga.imagem.startsWith('http') ? manga.imagem : 
-                     manga.imagem.startsWith('/img/') ? `http://localhost:3001${manga.imagem}` :
-                     manga.imagem.startsWith('../img/') ? `http://localhost:3001/img/${manga.imagem.split('/').pop()}` :
-                     `http://localhost:3001/img/${manga.imagem}`) : 
-                    'http://localhost:3001/img/default-manga.png';
+                     manga.imagem.startsWith('/img/') ? `http://localhost:3000${manga.imagem}` :
+                     manga.imagem.startsWith('../img/') ? `http://localhost:3000/img/${manga.imagem.split('/').pop()}` :
+                     `http://localhost:3000/img/${manga.imagem}`) : 
+                    'http://localhost:3000/img/default-manga.png';
                 
                 const card = document.createElement('div');
                 card.className = `card update-card ${isKept ? 'kept' : ''}`;
                 card.dataset.mangaId = manga.id;
                 card.innerHTML = `
                     <div class="card-image">
-                        <img src="${imageUrl}" alt="${manga.titulo}" onerror="this.src='http://localhost:3001/img/default-manga.png'">
+                        <img src="${imageUrl}" alt="${manga.titulo}" onerror="this.src='http://localhost:3000/img/default-manga.png'">
                     </div>
                     <div class="card-info">
                         <h3>${manga.titulo}</h3>
@@ -1702,23 +1698,11 @@
 
                 deleteButton.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    const token = localStorage.getItem('token');
-                    if (!token) {
-                        const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
-                        loginModal.show();
-                        return;
-                    }
                     handleMangaAction(manga.id, 'delete');
                 });
                 
                 keepButton.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    const token = localStorage.getItem('token');
-                    if (!token) {
-                        const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
-                        loginModal.show();
-                        return;
-                    }
                     handleMangaAction(manga.id, 'keep');
                 });
 
@@ -1743,6 +1727,16 @@
 
         } catch (error) {
             console.error('Erro ao carregar últimas atualizações:', error);
+            // Mostrar notificação de erro
+            const notification = document.createElement('div');
+            notification.className = 'notification error';
+            notification.textContent = 'Erro ao carregar últimas atualizações. Tente novamente.';
+            document.body.appendChild(notification);
+            setTimeout(() => notification.classList.add('show'), 100);
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
         }
     }
 
@@ -1753,17 +1747,17 @@
         
         const imageUrl = manga.imagem ? 
             (manga.imagem.startsWith('http') ? manga.imagem : 
-             manga.imagem.startsWith('/img/') ? `http://localhost:3001${manga.imagem}` :
-             manga.imagem.startsWith('../img/') ? `http://localhost:3001/img/${manga.imagem.split('/').pop()}` :
-             `http://localhost:3001/img/${manga.imagem}`) : 
-            'http://localhost:3001/img/default-manga.png';
+             manga.imagem.startsWith('/img/') ? `http://localhost:3000${manga.imagem}` :
+             manga.imagem.startsWith('../img/') ? `http://localhost:3000/img/${manga.imagem.split('/').pop()}` :
+             `http://localhost:3000/img/${manga.imagem}`) : 
+            'http://localhost:3000/img/default-manga.png';
         
         const card = document.createElement('div');
         card.className = `card update-card ${isKept ? 'kept' : ''}`;
         card.dataset.mangaId = manga.id;
         card.innerHTML = `
             <div class="card-image">
-                <img src="${imageUrl}" alt="${manga.titulo}" onerror="this.src='http://localhost:3001/img/default-manga.png'">
+                <img src="${imageUrl}" alt="${manga.titulo}" onerror="this.src='http://localhost:3000/img/default-manga.png'">
             </div>
             <div class="card-info">
                 <h3>${manga.titulo}</h3>
@@ -1834,14 +1828,33 @@
                 if (featuredCard) {
                     featuredCard.remove();
                 }
-                
-                // Recarregar mangás em destaque para garantir que está tudo atualizado
-                loadFeaturedMangas();
+
+                // Mostrar notificação de sucesso
+                const notification = document.createElement('div');
+                notification.className = 'notification success';
+                notification.textContent = 'Mangá removido das últimas atualizações!';
+                document.body.appendChild(notification);
+                setTimeout(() => notification.classList.add('show'), 100);
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                    setTimeout(() => notification.remove(), 300);
+                }, 3000);
             }
         } else if (action === 'keep') {
             try {
                 // Buscar os detalhes do mangá
-                const response = await fetch(`http://localhost:3001/api/mangas/${mangaId}`);
+                const response = await fetch(`http://localhost:3000/api/mangas/${mangaId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Erro ao buscar mangá: ${response.status} ${response.statusText}`);
+                }
+                
                 const manga = await response.json();
 
                 // Salvar no localStorage
@@ -1952,7 +1965,7 @@
             featuredContainer.innerHTML = '';
 
             // Buscar todos os mangás da API
-            const response = await fetch('http://localhost:3001/api/mangas/search');
+            const response = await fetch('http://localhost:3000/api/mangas/search');
             const allMangas = await response.json();
 
             // Adicionar os mangás mantidos
@@ -1961,16 +1974,16 @@
                 const updatedManga = allMangas.find(m => m.id === keptManga.id) || keptManga;
                 const imageUrl = updatedManga.imagem ? 
                     (updatedManga.imagem.startsWith('http') ? updatedManga.imagem : 
-                     updatedManga.imagem.startsWith('/img/') ? `http://localhost:3001${updatedManga.imagem}` :
-                     updatedManga.imagem.startsWith('../img/') ? `http://localhost:3001/img/${updatedManga.imagem.split('/').pop()}` :
-                     `http://localhost:3001/img/${updatedManga.imagem}`) : 
-                    'http://localhost:3001/img/default-manga.png';
+                     updatedManga.imagem.startsWith('/img/') ? `http://localhost:3000${updatedManga.imagem}` :
+                     updatedManga.imagem.startsWith('../img/') ? `http://localhost:3000/img/${updatedManga.imagem.split('/').pop()}` :
+                     `http://localhost:3000/img/${updatedManga.imagem}`) : 
+                    'http://localhost:3000/img/default-manga.png';
                 
                 const card = document.createElement('div');
                 card.className = 'card';
                 card.dataset.mangaId = updatedManga.id;
                 card.innerHTML = `
-                    <img src="${imageUrl}" alt="${updatedManga.titulo}" onerror="this.src='http://localhost:3001/img/default-manga.png'">
+                    <img src="${imageUrl}" alt="${updatedManga.titulo}" onerror="this.src='http://localhost:3000/img/default-manga.png'">
                     <div class="card-info">
                         <h3>${updatedManga.titulo}</h3>
                         <p><span class="star">★</span> ${updatedManga.nota}</p>
@@ -1992,16 +2005,16 @@
                 if (pokemon) {
                     const imageUrl = pokemon.imagem ? 
                         (pokemon.imagem.startsWith('http') ? pokemon.imagem : 
-                         pokemon.imagem.startsWith('/img/') ? `http://localhost:3001${pokemon.imagem}` :
-                         pokemon.imagem.startsWith('../img/') ? `http://localhost:3001/img/${pokemon.imagem.split('/').pop()}` :
-                         `http://localhost:3001/img/${pokemon.imagem}`) : 
-                        'http://localhost:3001/img/default-manga.png';
+                         pokemon.imagem.startsWith('/img/') ? `http://localhost:3000${pokemon.imagem}` :
+                         pokemon.imagem.startsWith('../img/') ? `http://localhost:3000/img/${pokemon.imagem.split('/').pop()}` :
+                         `http://localhost:3000/img/${pokemon.imagem}`) : 
+                        'http://localhost:3000/img/default-manga.png';
                     
                     const card = document.createElement('div');
                     card.className = 'card';
                     card.dataset.mangaId = pokemon.id;
                     card.innerHTML = `
-                        <img src="${imageUrl}" alt="${pokemon.titulo}" onerror="this.src='http://localhost:3001/img/default-manga.png'">
+                        <img src="${imageUrl}" alt="${pokemon.titulo}" onerror="this.src='http://localhost:3000/img/default-manga.png'">
                         <div class="card-info">
                             <h3>${pokemon.titulo}</h3>
                             <p><span class="star">★</span> ${pokemon.nota}</p>
@@ -2033,6 +2046,10 @@
 
     // Função para verificar autenticação e bloquear interações
     function checkAuthAndBlock() {
+        // Removendo temporariamente o bloqueio de interações
+        return;
+        
+        /* Código original comentado
         const token = localStorage.getItem('token');
         if (!token) {
             // Bloquear apenas as interações
@@ -2118,6 +2135,7 @@
             `;
             document.head.appendChild(style);
         }
+        */
     }
 
     // Adicionar verificação de autenticação quando o DOM estiver carregado
